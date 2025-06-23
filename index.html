@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TuningHub</title>
+  <link rel="stylesheet" href="css/index.css" />
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <!-- Header mit Logo & Account -->
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="#"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" /></a>
+      </div>
+      <div class="account-erstellen">
+        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" /></a>
+      </div>
+    </div>
+
+    <!-- Suchleiste unter dem Logo -->
+    <div class="searchbar-wrapper">
+      <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+    </div>
+  </header>
+
+  <!-- Hauptinhalt -->
+  <main>
+    <div class="grid-container">
+      <div class="card"><h1>Rad</h1><h2>16 Zoll</h2><h2>80€ VB</h2></div>
+      <div class="card"><h1>Vergaser</h1><h2>Bing 17/15/110</h2><h2>40€</h2></div>
+      <div class="card"><h1>Lenker</h1><h2>Chrom</h2><h2>15€</h2></div>
+      <div class="card"><h1>Tank</h1><h2>S51, Rot</h2><h2>60€ VB</h2></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="informations">Über TuningHub</div>
+    <div class="informations">Impressum</div>
+    <div class="informations">Support</div>
+    <div class="informations">Social Media</div>
+  </footer>
+
+  <!-- Supabase Setup -->
+  <script>
+    // Supabase-Projekt konfigurieren:
+    const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Account-Link dynamisch setzen
+    client.auth.getUser().then(({ data: { user } }) => {
+      const accountLink = document.getElementById('account-link');
+      if (user) {
+        // Benutzer ist eingeloggt → auf Profilseite leiten
+        accountLink.href = 'account.html';
+      } else {
+        // Nicht eingeloggt → auf Login-Seite leiten
+        accountLink.href = 'login.html';
+      }
+    });
+  </script>
+</body>
+</html>

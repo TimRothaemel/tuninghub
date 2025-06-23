@@ -1,0 +1,27 @@
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+
+
+  const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+
+
+  supabase.auth.getUser().then(({ data: { user } }) => {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("userInfo").innerText = "Eingeloggt als: " + user.email;
+    }
+  });
+
+  async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = "login.html";
+  }
+</script>
+
+<div id="userInfo">Lade Daten...</div>
+<button onclick="logout()">Abmelden</button>

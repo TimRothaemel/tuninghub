@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TuningHub Login</title>
+    <link rel="stylesheet" href="css/index.css" />
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <a href="#"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo"
+                        height="50" /></a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="form-wrapper">
+            <h2>Login</h2>
+            <form onsubmit="event.preventDefault(); login();">
+                <input id="email" type="email" placeholder="E-Mail" required>
+                <input id="password" type="password" placeholder="Passwort" required>
+                <button type="submit">Einloggen</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function login() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) {
+                alert("Login fehlgeschlagen: " + error.message);
+            } else {
+                alert("Login erfolgreich!");
+                window.location.href = "account.html";
+            }
+        }
+    </script>
+</body>
+
+</html>

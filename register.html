@@ -1,0 +1,30 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const supabase = supabase.createClient(
+    "https://yvdptnkmgfxkrszitweo.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo"
+  );
+
+  async function register() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password
+    });
+
+    if (error) {
+      alert("Registrierung fehlgeschlagen: " + error.message);
+    } else {
+      alert("Registrierung erfolgreich! Bitte E-Mail bestätigen.");
+      window.location.href = "login.html";
+    }
+  }
+</script>
+
+<form onsubmit="event.preventDefault(); register();">
+  <input id="email" type="email" placeholder="E-Mail" required>
+  <input id="password" type="password" placeholder="Passwort" required>
+  <button type="submit">Registrieren</button>
+</form>
