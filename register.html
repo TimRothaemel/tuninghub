@@ -1,30 +1,111 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
-  const supabase = supabase.createClient(
-    "https://yvdptnkmgfxkrszitweo.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo"
-  );
+<!DOCTYPE html>
+<html lang="de">
 
-  async function register() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password
-    });
-
-    if (error) {
-      alert("Registrierung fehlgeschlagen: " + error.message);
-    } else {
-      alert("Registrierung erfolgreich! Bitte E-Mail bestätigen.");
-      window.location.href = "login.html";
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrieren – TuningHub</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="css/index.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
     }
-  }
-</script>
 
-<form onsubmit="event.preventDefault(); register();">
-  <input id="email" type="email" placeholder="E-Mail" required>
-  <input id="password" type="password" placeholder="Passwort" required>
-  <button type="submit">Registrieren</button>
-</form>
+    input,
+    button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+    }
+
+    #error {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="index.html"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo"
+            height="50" /></a>
+      </div>
+      <div class="account-erstellen">
+        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36"
+            height="36" /></a>
+      </div>
+    </div>
+  </header>
+  <main>
+    <h1>Registrieren</h1>
+    <form id="register-form">
+      <input type="text" id="full_name" placeholder="Vollständiger Name" required />
+      <input type="tel" id="phone" placeholder="Telefonnummer" required />
+      <input type="email" id="email" placeholder="E-Mail" required />
+      <input type="password" id="password" placeholder="Passwort" required />
+      <button type="submit">Registrieren</button>
+      <p id="error"></p>
+    </form>
+  </main>
+  <footer>
+    <div class="informations">Über TuningHub</div>
+    <div class="informations">Impressum</div>
+    <div class="informations">Support</div>
+    <div class="informations">Social Media</div>
+  </footer>
+  <script>
+    const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const form = document.getElementById('register-form');
+    const errorText = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const full_name = document.getElementById('full_name').value;
+      const phone = document.getElementById('phone').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Schritt 1: Benutzer registrieren
+      const { data: signupData, error: signupError } = await client.auth.signUp({
+        email,
+        password
+      });
+
+      if (signupError) {
+        errorText.textContent = signupError.message;
+        return;
+      }
+
+      const userId = signupData.user.id;
+
+      // Schritt 2: zusätzliche Daten in "users"-Tabelle speichern
+      const { error: insertError } = await client.from('users').insert([
+        {
+          id: userId,
+          full_name,
+          phone
+        }
+      ]);
+
+      if (insertError) {
+        errorText.textContent = insertError.message;
+        return;
+      }
+
+      // Weiterleitung nach erfolgreicher Registrierung
+      window.location.href = 'account.html';
+    });
+  </script>
+</body>
+
+</html>

@@ -83,3 +83,15 @@ footer {
   font-size: 14px;
   color: #555;
 }
+main > a {
+  display: block;
+  text-align: right;
+  margin: 16px 24px 0 0;
+  font-weight: bold;
+  color: #0077cc;
+  text-decoration: none;
+}
+
+main > a:hover {
+  text-decoration: underline;
+}

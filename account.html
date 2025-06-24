@@ -1,27 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="css/index.css" />
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="index.html"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo"
+            height="50" /></a>
+      </div>
+      <div class="account-erstellen">
+        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36"
+            height="36" /></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hauptinhalt -->
+  <main>
+    <div id="userInfo">Lade Daten...</div>
+    <button onclick="logout()">Abmelden</button>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="informations">Über TuningHub</div>
+    <div class="informations">Impressum</div>
+    <div class="informations">Support</div>
+    <div class="informations">Social Media</div>
+  </footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+  <script>
+    const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
 
 
-  const client = supabase.createClient(supabaseUrl, supabaseKey);
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 
 
-  supabase.auth.getUser().then(({ data: { user } }) => {
-    if (!user) {
+    client.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        document.getElementById("userInfo").innerText = "Eingeloggt als: " + user.email;
+      }
+    });
+
+    async function logout() {
+      await client.auth.signOut();
       window.location.href = "login.html";
-    } else {
-      document.getElementById("userInfo").innerText = "Eingeloggt als: " + user.email;
     }
-  });
+  </script>
 
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = "login.html";
-  }
-</script>
 
-<div id="userInfo">Lade Daten...</div>
-<button onclick="logout()">Abmelden</button>
+</body>
+
+</html>

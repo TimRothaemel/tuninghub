@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TuningHub</title>
   <link rel="stylesheet" href="css/index.css" />
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
   <!-- Header mit Logo & Account -->
   <header class="header">
     <div class="header-top">
       <div class="logo">
-        <a href="#"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" /></a>
+        <a href="index.html"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo"
+            height="50" /></a>
       </div>
       <div class="account-erstellen">
-        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" /></a>
+        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36"
+            height="36" /></a>
       </div>
     </div>
 
@@ -28,11 +32,28 @@
 
   <!-- Hauptinhalt -->
   <main>
+    <a href="">Alle ansehen &rarr;</a>
     <div class="grid-container">
-      <div class="card"><h1>Rad</h1><h2>16 Zoll</h2><h2>80€ VB</h2></div>
-      <div class="card"><h1>Vergaser</h1><h2>Bing 17/15/110</h2><h2>40€</h2></div>
-      <div class="card"><h1>Lenker</h1><h2>Chrom</h2><h2>15€</h2></div>
-      <div class="card"><h1>Tank</h1><h2>S51, Rot</h2><h2>60€ VB</h2></div>
+      <div class="card">
+        <h1>Rad</h1>
+        <h2>16 Zoll</h2>
+        <h2>80€ VB</h2>
+      </div>
+      <div class="card">
+        <h1>Vergaser</h1>
+        <h2>Bing 17/15/110</h2>
+        <h2>40€</h2>
+      </div>
+      <div class="card">
+        <h1>Lenker</h1>
+        <h2>Chrom</h2>
+        <h2>15€</h2>
+      </div>
+      <div class="card">
+        <h1>Tank</h1>
+        <h2>S51, Rot</h2>
+        <h2>60€ VB</h2>
+      </div>
     </div>
   </main>
 
@@ -52,8 +73,10 @@
     const client = supabase.createClient(supabaseUrl, supabaseKey);
 
     // Account-Link dynamisch setzen
-    client.auth.getUser().then(({ data: { user } }) => {
+    client.auth.getUser().then(({ data: { user }, error }) => {
       const accountLink = document.getElementById('account-link');
+      if (!accountLink) return; // Element nicht gefunden → nichts tun
+
       if (user) {
         // Benutzer ist eingeloggt → auf Profilseite leiten
         accountLink.href = 'account.html';
@@ -62,6 +85,9 @@
         accountLink.href = 'login.html';
       }
     });
+
   </script>
+
 </body>
+
 </html>
