@@ -1,65 +1,143 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TuningHub – Account</title>
   <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/account.css" />
 </head>
 
 <body>
   <header class="header">
     <div class="header-top">
       <div class="logo">
-        <a href="index.html"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo"
-            height="50" /></a>
+        <a href="index.html">
+          <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+        </a>
       </div>
       <div class="account-erstellen">
-        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36"
-            height="36" /></a>
+        <a id="account-link" href="#">
+          <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+        </a>
       </div>
     </div>
   </header>
 
-  <!-- Hauptinhalt -->
-  <main>
-    <div id="userInfo">Lade Daten...</div>
+  <main style="padding: 24px; max-width: 600px; margin: auto;">
+    <div id="userInfo" style="margin-bottom: 24px;">Lade Daten...</div>
+
+    <h2 style="margin-bottom: 16px;">Account verwalten</h2>
+
+    <label for="newEmail">Neue E-Mail</label>
+    <input type="email" id="newEmail" placeholder="Neue E-Mail-Adresse">
+    <button onclick="updateEmail()">E-Mail ändern</button>
+
+    <label for="newPassword">Neues Passwort</label>
+    <input type="password" id="newPassword" placeholder="Neues Passwort">
+    <button onclick="updatePassword()">Passwort ändern</button>
+
+    <label for="newUsername">Neuer Benutzername</label>
+    <input type="text" id="newUsername" placeholder="Benutzername">
+    <button onclick="updateUsername()">Benutzername ändern</button>
+
+    <label for="newPhone">Telefonnummer</label>
+    <input type="text" id="newPhone" placeholder="Telefonnummer eingeben">
+    <button onclick="updatePhone()">Telefonnummer speichern</button>
+
+    <hr style="margin: 24px 0;" />
+
     <button onclick="logout()">Abmelden</button>
+    <button class="danger" onclick="deleteAccount()"
+      style="background: #e63946; color: white; margin-top: 12px;">Account löschen</button>
   </main>
 
-  <!-- Footer -->
   <footer>
     <div class="informations">Über TuningHub</div>
     <div class="informations">Impressum</div>
     <div class="informations">Support</div>
     <div class="informations">Social Media</div>
   </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
 
-
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
-
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 
-    client.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
-        document.getElementById("userInfo").innerText = "Eingeloggt als: " + user.email;
+    let currentUser = null;
+
+    async function loadUser() {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error("Fehler beim Laden:", error.message);
+        return;
       }
-    });
+
+      if (!data.user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      currentUser = data.user;
+      document.getElementById("userInfo").innerText = "Eingeloggt als: " + currentUser.email;
+    }
+
+    async function updateEmail() {
+      const email = document.getElementById("newEmail").value;
+      const { error } = await supabase.auth.updateUser({ email });
+      if (error) return alert("Fehler: " + error.message);
+      alert("E-Mail geändert!");
+    }
+
+    async function updatePassword() {
+      const pw = document.getElementById("newPassword").value;
+      const { error } = await supabase.auth.updateUser({ password: pw });
+      if (error) return alert("Fehler: " + error.message);
+      alert("Passwort geändert!");
+    }
+
+    async function updateUsername() {
+      const username = document.getElementById("newUsername").value;
+      const { error } = await supabase.from("profiles").upsert({
+        id: currentUser.id,
+        username
+      });
+      if (error) return alert("Fehler beim Speichern: " + error.message);
+      alert("Benutzername aktualisiert!");
+    }
+
+    async function updatePhone() {
+      const phone = document.getElementById("newPhone").value;
+      const { error } = await supabase.from("profiles").upsert({
+        id: currentUser.id,
+        phone
+      });
+      if (error) return alert("Fehler beim Speichern: " + error.message);
+      alert("Telefonnummer gespeichert!");
+    }
 
     async function logout() {
-      await client.auth.signOut();
+      await supabase.auth.signOut();
       window.location.href = "login.html";
     }
+
+    async function deleteAccount() {
+      const confirmDelete = confirm("Willst du deinen Account wirklich löschen?");
+      if (!confirmDelete) return;
+
+      const { error } = await supabase.rpc("delete_user");
+      if (error) return alert("Fehler: " + error.message);
+      alert("Account gelöscht!");
+      window.location.href = "login.html";
+    }
+
+    loadUser();
   </script>
-
-
 </body>
 
 </html>
