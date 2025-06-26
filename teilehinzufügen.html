@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/index.css"/>
+    <link rel="stylesheet" href="css/teilehinzufügen.css"/>
+</head>
+<body>
+    <section id="teile-hinzufuegen" style="max-width: 600px; margin: auto; padding: 2rem;">
+  <h2>Teil hinzufügen</h2>
+  <label for="partTitle">Titel</label>
+  <input type="text" id="partTitle" placeholder="z. B. Auspuff S51">
+
+  <label for="partDescription">Beschreibung</label>
+  <textarea id="partDescription" placeholder="Beschreibe das Teil..." rows="4"></textarea>
+
+  <label for="partImage">Bild auswählen</label>
+  <input type="file" id="partImage" accept="image/*">
+
+  <button onclick="addPart()" style="margin-top: 1rem;">Teil hinzufügen</button>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/teile.js"></script>
+</body>
+</html>

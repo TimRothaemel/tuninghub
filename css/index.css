@@ -95,3 +95,20 @@ main > a {
 main > a:hover {
   text-decoration: underline;
 }
+.link-bar {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 24px 0 24px;
+}
+
+.left,
+.right {
+  font-weight: bold;
+  color: #0077cc;
+  text-decoration: none;
+}
+
+.left:hover,
+.right:hover {
+  text-decoration: underline;
+}
