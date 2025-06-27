@@ -45,7 +45,7 @@
   <main>
     <h1>Registrieren</h1>
     <form id="register-form">
-      <input type="text" id="full_name" placeholder="Vollständiger Name" required />
+      <input type="text" id="username" placeholder="Vollständiger Name" required />
       <input type="tel" id="phone" placeholder="Telefonnummer" required />
       <input type="email" id="email" placeholder="E-Mail" required />
       <input type="password" id="password" placeholder="Passwort" required />
@@ -71,7 +71,7 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const full_name = document.getElementById('full_name').value;
+      const full_name = document.getElementById('username').value;
       const phone = document.getElementById('phone').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -90,10 +90,10 @@
       const userId = signupData.user.id;
 
       // Schritt 2: zusätzliche Daten in "users"-Tabelle speichern
-      const { error: insertError } = await client.from('users').insert([
+      const { error: insertError } = await client.from('profiles').insert([
         {
           id: userId,
-          full_name,
+          username,
           phone
         }
       ]);
