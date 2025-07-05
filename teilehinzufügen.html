@@ -1,27 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="css/index.css"/>
-    <link rel="stylesheet" href="css/teilehinzufügen.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teil hinzufügen – TuningHub</title>
+  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/teilehinzufügen.css" />
 </head>
 <body>
-    <section id="teile-hinzufuegen" style="max-width: 600px; margin: auto; padding: 2rem;">
-  <h2>Teil hinzufügen</h2>
-  <label for="partTitle">Titel</label>
-  <input type="text" id="partTitle" placeholder="z. B. Auspuff S51">
+  <section id="teile-hinzufuegen" style="max-width: 600px; margin: auto; padding: 2rem;">
+    <h2>Teil hinzufügen</h2>
 
-  <label for="partDescription">Beschreibung</label>
-  <textarea id="partDescription" placeholder="Beschreibe das Teil..." rows="4"></textarea>
+    <label for="partTitle">Titel</label>
+    <input type="text" id="partTitle" placeholder="z. B. Auspuff S51" />
 
-  <label for="partImage">Bild auswählen</label>
-  <input type="file" id="partImage" accept="image/*">
+    <label for="partDescription">Beschreibung</label>
+    <textarea id="partDescription" placeholder="Beschreibe das Teil..." rows="4"></textarea>
 
-  <button onclick="addPart()" style="margin-top: 1rem;">Teil hinzufügen</button>
-</section>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/teile.js"></script>
+    <label for="partPrice">Preis (in €)</label>
+    <input type="number" id="partPrice" placeholder="z. B. 49.99" step="0.01" min="0"/>
+
+    <label for="partCondition">Zustand</label>
+    <select id="partCondition">
+      <option value="neu">Neu</option>
+      <option value="sehr gut">Sehr gut</option>
+      <option value="gebraucht">Gebraucht</option>
+      <option value="defekt">Defekt / Bastler</option>
+    </select>
+
+    <label for="partImage">Bild auswählen</label>
+    <input type="file" id="partImage" accept="image/*" />
+
+    <label for="contactNumber">Telefonnummer zur Kontaktaufnahme</label>
+    <select id="contactNumber">
+      <!-- Dynamisch gefüllt per JavaScript -->
+    </select>
+    <input type="text" id="newPhoneNumber" placeholder="Neue Nummer hinzufügen" style="margin-top: 0.5rem;" />
+    <button onclick="addPhoneNumber()" style="margin-bottom: 1rem;">Nummer hinzufügen</button>
+
+    <button onclick="addPart()" style="margin-top: 1rem;">Teil hinzufügen</button>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/teile.js"></script>
 </body>
 </html>
