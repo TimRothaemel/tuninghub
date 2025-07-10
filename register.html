@@ -60,53 +60,52 @@
     <div class="informations">Social Media</div>
     <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
   </footer>
-  <script>
-    const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
+<script>
+  const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+  const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-    const form = document.getElementById('register-form');
-    const errorText = document.getElementById('error');
+  const form = document.getElementById('register-form');
+  const errorText = document.getElementById('error');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      const full_name = document.getElementById('username').value;
-      const phone = document.getElementById('phone').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+    const username = document.getElementById('username').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
 
-      // Schritt 1: Benutzer registrieren
-      const { data: signupData, error: signupError } = await client.auth.signUp({
-        email,
-        password
-      });
+    errorText.style.color = 'black';
+    errorText.textContent = 'Registrierung läuft...';
 
-      if (signupError) {
-        errorText.textContent = signupError.message;
-        return;
-      }
-
-      const userId = signupData.user.id;
-
-      // Schritt 2: zusätzliche Daten in "users"-Tabelle speichern
-      const { error: insertError } = await client.from('profiles').insert([
-        {
-          id: userId,
+    const { data: signupData, error: signupError } = await client.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
           username,
           phone
         }
-      ]);
-
-      if (insertError) {
-        errorText.textContent = insertError.message;
-        return;
       }
-
-      // Weiterleitung nach erfolgreicher Registrierung
-      window.location.href = 'account.html';
     });
-  </script>
+
+    if (signupError) {
+      errorText.style.color = 'red';
+      errorText.textContent = 'Fehler: ' + signupError.message;
+      return;
+    }
+
+    errorText.style.color = 'green';
+    errorText.textContent = 'Registrierung erfolgreich! Weiterleitung...';
+
+    // Kurze Verzögerung zur Anzeige der Erfolgsmeldung
+    setTimeout(() => {
+      window.location.href = 'account.html';
+    }, 1500);
+  });
+</script>
+
 </body>
 
 </html>
