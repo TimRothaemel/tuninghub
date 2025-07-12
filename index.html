@@ -1,97 +1,740 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TuningHub</title>
-  <link rel="stylesheet" href="css/index.css" />
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TuningHub</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Detailansicht Modal Styles */
+        .detail-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .detail-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-content {
+            background-color: white;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .close-button:hover {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .detail-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .detail-image-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .detail-main-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detail-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0;
+        }
+
+        .detail-description {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .detail-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .meta-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .meta-value {
+            color: #333;
+            font-size: 16px;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .primary-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .primary-button:hover {
+            background-color: #0056b3;
+        }
+
+        .secondary-button {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        /* Kontakt-Button spezielle Styles */
+        .primary-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .primary-button:disabled:hover {
+            background-color: #6c757d;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .detail-content {
+                width: 95%;
+                max-height: 95vh;
+            }
+
+            .detail-body {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .detail-price {
+                font-size: 24px;
+            }
+
+            .detail-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Animationen */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Hover-Effekt für Karten */
+        .card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Bestehende Styles für Fehlermeldungen etc. */
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            font-size: 18px;
+            background-color: #f8d7da;
+            border-radius: 8px;
+            margin: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 18px;
+        }
+    </style>
 </head>
 
 <body>
-  <!-- Header mit Logo & Account -->
-  <header class="header">
-    <div class="header-top">
-      <div class="logo">
-        <a href="index.html"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo"
-            height="50" /></a>
-      </div>
-      <div class="account-erstellen">
-        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36"
-            height="36" /></a>
-      </div>
+    <!-- Header mit Logo & Account -->
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+                </a>
+            </div>
+            <div class="account-erstellen">
+                <a id="account-link" href="#">
+                    <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+                </a>
+            </div>
+        </div>
+        
+        <!-- Suchleiste -->
+        <div class="searchbar-wrapper">
+            <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+        </div>
+    </header>
+
+    <!-- Hauptinhalt -->
+    <main>
+        <div class="link-bar">
+            <a class="left" href="teilehinzufügen.html">Hinzufügen</a>
+            <a class="right" href="teile.html">Alle ansehen &rarr;</a>
+        </div>
+
+        <!-- Container für dynamische Karten -->
+        <div class="grid-container" id="angebot-container">
+            <!-- Dynamische Karten werden hier eingefügt -->
+        </div>
+    </main>
+
+    <!-- Detailansicht Modal -->
+    <div class="detail-modal" id="detail-modal">
+        <div class="detail-content">
+            <div class="detail-header">
+                <h1 class="detail-title" id="detail-title">Titel</h1>
+                <button class="close-button" id="close-detail">&times;</button>
+            </div>
+            <div class="detail-body">
+                <div class="detail-image-section">
+                    <img id="detail-image" class="detail-main-image" src="" alt="" />
+                </div>
+                <div class="detail-info-section">
+                    <p class="detail-price" id="detail-price">0€</p>
+                    <div class="detail-description" id="detail-description">
+                        Keine Beschreibung verfügbar.
+                    </div>
+                    <div class="detail-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Kategorie</span>
+                            <span class="meta-value" id="detail-category">Tuning-Teil</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Zustand</span>
+                            <span class="meta-value" id="detail-condition">Gebraucht</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Verkäufer</span>
+                            <span class="meta-value" id="detail-seller">Kontakt über Telefon</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Telefon</span>
+                            <span class="meta-value" id="detail-phone">Wird beim Kontakt angezeigt</span>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="action-button primary-button" id="contact-seller-btn">Verkäufer kontaktieren</button>
+                        <button class="action-button secondary-button">Merken</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Suchleiste unter dem Logo -->
-    <div class="searchbar-wrapper">
-      <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
-    </div>
-  </header>
+    <!-- Footer -->
+    <footer>
+        <div class="informations">Über TuningHub</div>
+        <div class="informations"><a href="impressum.html">Impressum</a></div>
+        <div class="informations">Support</div>
+        <div class="informations">Social Media</div>
+        <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+    </footer>
 
-  <!-- Hauptinhalt -->
-  <main>
-    <div class="link-bar">
-  <a class="left" href="teilehinzufügen.html">Hinzufügen</a>
-  <a class="right" href="#">Alle ansehen &rarr;</a>
-</div>
-    <div class="grid-container">
-      <div class="card">
-        <h1>Rad</h1>
-        <h2>16 Zoll</h2>
-        <h2>80€ VB</h2>
-      </div>
-      <div class="card">
-        <h1>Vergaser</h1>
-        <h2>Bing 17/15/110</h2>
-        <h2>40€</h2>
-      </div>
-      <div class="card">
-        <h1>Lenker</h1>
-        <h2>Chrom</h2>
-        <h2>15€</h2>
-      </div>
-      <div class="card">
-        <h1>Tank</h1>
-        <h2>S51, Rot</h2>
-        <h2>60€ VB</h2>
-      </div>
-    </div>
-  </main>
+    <!-- Überarbeitetes JavaScript -->
+    <script>
+        // Debug-Funktionen
+        function log(message, data = null) {
+            console.log(`[TuningHub] ${message}`, data || '');
+        }
 
-  <!-- Footer -->
-  <footer>
-    <div class="informations">Über TuningHub</div>
-    <div class="informations"><a href="impressum.html">Impressum</a></div>
-    <div class="informations">Support</div>
-    <div class="informations">Social Media</div>
-    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
-  </footer>
+        function showError(message) {
+            const container = document.getElementById('angebot-container');
+            container.innerHTML = `<div class="error">❌ ${message}</div>`;
+            log(`ERROR: ${message}`);
+        }
 
-  <!-- Supabase Setup -->
-  <script>
-    // Supabase-Projekt konfigurieren:
-    const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
+        function showLoading() {
+            const container = document.getElementById('angebot-container');
+            container.innerHTML = '<div class="loading">🔄 Lade Angebote...</div>';
+        }
 
-    // Account-Link dynamisch setzen
-    client.auth.getUser().then(({ data: { user }, error }) => {
-      const accountLink = document.getElementById('account-link');
-      if (!accountLink) return; // Element nicht gefunden → nichts tun
+        function showEmpty() {
+            const container = document.getElementById('angebot-container');
+            container.innerHTML = '<div class="empty">📦 Keine Angebote vorhanden</div>';
+        }
 
-      if (user) {
-        // Benutzer ist eingeloggt → auf Profilseite leiten
-        accountLink.href = 'account.html';
-      } else {
-        // Nicht eingeloggt → auf Login-Seite leiten
-        accountLink.href = 'login.html';
-      }
-    });
+        // Supabase Setup
+        const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+        
+        let supabase;
+        
+        try {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            log('Supabase Client erfolgreich erstellt');
+        } catch (error) {
+            log('Fehler beim Erstellen des Supabase Clients:', error);
+            showError('Fehler beim Verbinden mit der Datenbank');
+        }
 
-  </script>
+        // Sichere Datenextraktion
+        function extractData(teil) {
+            // Alle möglichen Feldnamen prüfen
+            const name = teil.name || teil.title || teil.bezeichnung || teil.teil_name || 'Unbekanntes Teil';
+            const preis = teil.preis || teil.price || teil.kosten || teil.euro || 'Preis auf Anfrage';
+            const beschreibung = teil.beschreibung || teil.description || teil.details || '';
+            const bild = teil.bild_url || teil.image_url || teil.foto || teil.bild || null;
+            const kategorie = teil.kategorie || teil.category || teil.type || 'Tuning-Teil';
+            const zustand = teil.zustand || teil.condition || teil.state || 'Gebraucht';
+            const telefon = teil.contact_number || teil.phone || teil.telefon || '';
+            const verkäufer = teil.seller_name || teil.user_name || 'Privater Verkäufer';
+            const datum = teil.created_at || teil.date || new Date().toISOString();
+            
+            return { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum };
+        }
 
+        // Verkäufer kontaktieren
+        function contactSeller(telefon) {
+            if (!telefon) {
+                alert('Keine Telefonnummer verfügbar');
+                return;
+            }
+            
+            // Telefonnummer bereinigen (nur Zahlen und +)
+            const cleanedPhone = telefon.replace(/[^\d+]/g, '');
+            
+            // Verschiedene Optionen anbieten
+            const options = [
+                `📞 Anrufen: ${telefon}`,
+                `💬 WhatsApp: ${telefon}`,
+                `📱 SMS: ${telefon}`,
+                '❌ Abbrechen'
+            ];
+            
+            const choice = prompt(
+                `Wie möchtest du den Verkäufer kontaktieren?\n\n` +
+                `1 - ${options[0]}\n` +
+                `2 - ${options[1]}\n` +
+                `3 - ${options[2]}\n` +
+                `4 - ${options[3]}\n\n` +
+                `Telefonnummer: ${telefon}\n\n` +
+                `Gib die Nummer 1-4 ein:`,
+                '1'
+            );
+            
+            switch(choice) {
+                case '1':
+                    window.location.href = `tel:${cleanedPhone}`;
+                    break;
+                case '2':
+                    window.open(`https://wa.me/${cleanedPhone.replace(/[^\d]/g, '')}`, '_blank');
+                    break;
+                case '3':
+                    window.location.href = `sms:${cleanedPhone}`;
+                    break;
+                case '4':
+                case null:
+                    // Abbrechen
+                    break;
+                default:
+                    alert('Ungültige Auswahl');
+            }
+        }
+
+        // Detailansicht öffnen
+        function openDetailView(teil) {
+            const modal = document.getElementById('detail-modal');
+            const { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum } = extractData(teil);
+            
+            // Titel setzen
+            document.getElementById('detail-title').textContent = name;
+            
+            // Bild setzen
+            const imageUrl = bild || 'https://via.placeholder.com/600x400/e9ecef/666?text=Kein+Bild';
+            const fallbackUrl = 'https://via.placeholder.com/600x400/f8f9fa/adb5bd?text=Bild+nicht+verfügbar';
+            const detailImage = document.getElementById('detail-image');
+            detailImage.src = imageUrl;
+            detailImage.alt = name;
+            detailImage.onerror = function() { this.src = fallbackUrl; };
+            
+            // Preis formatieren und setzen
+            let preisText = preis;
+            if (typeof preis === 'number') {
+                preisText = `${preis.toLocaleString('de-DE')}€`;
+            } else if (typeof preis === 'string' && !isNaN(parseFloat(preis))) {
+                preisText = `${parseFloat(preis).toLocaleString('de-DE')}€`;
+            }
+            document.getElementById('detail-price').textContent = preisText;
+            
+            // Beschreibung setzen
+            document.getElementById('detail-description').textContent = 
+                beschreibung || 'Keine detaillierte Beschreibung verfügbar.';
+            
+            // Meta-Informationen setzen
+            document.getElementById('detail-category').textContent = kategorie;
+            document.getElementById('detail-condition').textContent = zustand;
+            document.getElementById('detail-seller').textContent = verkäufer;
+            document.getElementById('detail-phone').textContent = telefon || 'Nicht verfügbar';
+            
+            // Kontakt-Button Event
+            const contactBtn = document.getElementById('contact-seller-btn');
+            contactBtn.onclick = function() {
+                contactSeller(telefon);
+            };
+            
+            // Button deaktivieren wenn keine Telefonnummer
+            if (!telefon) {
+                contactBtn.disabled = true;
+                contactBtn.textContent = 'Keine Kontaktdaten verfügbar';
+            } else {
+                contactBtn.disabled = false;
+                contactBtn.textContent = 'Verkäufer kontaktieren';
+            }
+            
+            // Modal anzeigen
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Scrollen verhindern
+            
+            log('Detailansicht geöffnet für:', name);
+        }
+
+        // Detailansicht schließen
+        function closeDetailView() {
+            const modal = document.getElementById('detail-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Scrollen wieder erlauben
+            log('Detailansicht geschlossen');
+        }
+
+        // Karte erstellen
+        function createCard(teil) {
+            const { name, preis, beschreibung, bild } = extractData(teil);
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Bild-URL mit Fallback
+            const imageUrl = bild || 'https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild';
+            const fallbackUrl = 'https://via.placeholder.com/300x200/f8f9fa/adb5bd?text=Bild+nicht+verfügbar';
+            
+            // Preis formatieren
+            let preisText = preis;
+            if (typeof preis === 'number') {
+                preisText = `${preis.toLocaleString('de-DE')}€`;
+            } else if (typeof preis === 'string' && !isNaN(parseFloat(preis))) {
+                preisText = `${parseFloat(preis).toLocaleString('de-DE')}€`;
+            }
+            
+            card.innerHTML = `
+                <img src="${imageUrl}" 
+                     alt="${name}" 
+                     onerror="this.src='${fallbackUrl}'" 
+                     loading="lazy" />
+                <h2>${name}</h2>
+                ${beschreibung ? `<p>${beschreibung}</p>` : ''}
+                <p><strong>${preisText}</strong></p>
+            `;
+            
+            // Click-Event für Detailansicht
+            card.addEventListener('click', function() {
+                openDetailView(teil);
+            });
+            
+            return card;
+        }
+
+        // Hauptfunktion zum Laden der Angebote
+        async function ladeAngebote() {
+            log('Starte Laden der Angebote...');
+            
+            const container = document.getElementById('angebot-container');
+            if (!container) {
+                log('ERROR: Container nicht gefunden');
+                return;
+            }
+
+            if (!supabase) {
+                showError('Supabase nicht initialisiert');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                log('Lade Daten aus Supabase...');
+                
+                const { data, error } = await supabase
+                    .from('parts')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
+                if (error) {
+                    log('Supabase Fehler:', error);
+                    showError(`Datenbankfehler: ${error.message}`);
+                    return;
+                }
+
+                log('Daten erfolgreich geladen:', data);
+                
+                if (!data || data.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                // Container leeren
+                container.innerHTML = '';
+
+                // Jedes Teil verarbeiten
+                data.forEach((teil, index) => {
+                    log(`Verarbeite Teil ${index + 1}:`, teil);
+                    
+                    try {
+                        const card = createCard(teil);
+                        container.appendChild(card);
+                    } catch (cardError) {
+                        log(`Fehler beim Erstellen der Karte ${index + 1}:`, cardError);
+                    }
+                });
+
+                log(`✅ ${data.length} Teile erfolgreich angezeigt`);
+
+            } catch (error) {
+                log('Unerwarteter Fehler:', error);
+                showError(`Unerwarteter Fehler: ${error.message}`);
+            }
+        }
+
+        // Account-Link setzen
+        async function setAccountLink() {
+            if (!supabase) return;
+            
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                const accountLink = document.getElementById('account-link');
+                if (accountLink) {
+                    accountLink.href = user ? 'account.html' : 'login.html';
+                    log('Account-Link gesetzt:', user ? 'Eingeloggt' : 'Nicht eingeloggt');
+                }
+            } catch (error) {
+                log('Fehler beim Setzen des Account-Links:', error);
+            }
+        }
+
+        // Suchfunktion
+        function setupSearch() {
+            const searchInput = document.querySelector('.searchbar');
+            if (!searchInput) return;
+            
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                log('Suche:', query);
+                
+                // Hier könnte eine Suchfunktion implementiert werden
+                // Für jetzt nur ein Log
+            });
+        }
+
+        // Test-Daten anzeigen (falls keine echten Daten da sind)
+        function showTestData() {
+            log('Zeige Test-Daten...');
+            
+            const container = document.getElementById('angebot-container');
+            const testData = [
+                {
+                    name: 'BMW M3 Spoiler',
+                    preis: 299,
+                    beschreibung: 'Originaler BMW M3 Spoiler in sehr gutem Zustand. Perfekt für alle E46 Modelle.',
+                    bild_url: 'https://via.placeholder.com/300x200/007bff/white?text=BMW+M3+Spoiler',
+                    kategorie: 'Karosserie',
+                    zustand: 'Sehr gut',
+                    contact_number: '+49 123 456789',
+                    seller_name: 'Max Mustermann',
+                    created_at: '2024-01-15T10:30:00Z'
+                },
+                {
+                    name: 'Audi RS4 Felgen',
+                    preis: 1200,
+                    beschreibung: '19 Zoll Originalfelgen vom Audi RS4, wie neu, ohne Kratzer oder Beschädigungen.',
+                    bild_url: 'https://via.placeholder.com/300x200/28a745/white?text=Audi+RS4+Felgen',
+                    kategorie: 'Felgen',
+                    zustand: 'Neuwertig',
+                    contact_number: '+49 987 654321',
+                    seller_name: 'Anna Schmidt',
+                    created_at: '2024-01-10T14:20:00Z'
+                },
+                {
+                    name: 'Turbolader Kit',
+                    preis: 2500,
+                    beschreibung: 'Komplettes Turbolader-Kit für VW Golf GTI, inklusive aller Montageteile.',
+                    bild_url: 'https://via.placeholder.com/300x200/dc3545/white?text=Turbolader+Kit',
+                    kategorie: 'Motor',
+                    zustand: 'Gebraucht',
+                    contact_number: '+49 555 123456',
+                    seller_name: 'Thomas Müller',
+                    created_at: '2024-01-08T09:15:00Z'
+                }
+            ];
+            
+            container.innerHTML = '';
+            testData.forEach(teil => {
+                const card = createCard(teil);
+                container.appendChild(card);
+            });
+        }
+
+        // Event-Listener für Detailansicht
+        function setupDetailView() {
+            // Schließen-Button
+            document.getElementById('close-detail').addEventListener('click', closeDetailView);
+            
+            // Außerhalb des Modals klicken
+            document.getElementById('detail-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDetailView();
+                }
+            });
+            
+            // ESC-Taste
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeDetailView();
+                }
+            });
+            
+            log('Detailansicht Event-Listener eingerichtet');
+        }
+
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM geladen, starte Initialisierung...');
+            
+            // Account-Link setzen
+            setAccountLink();
+            
+            // Suchfunktion einrichten
+            setupSearch();
+            
+            // Detailansicht einrichten
+            setupDetailView();
+            
+            // Angebote laden
+            ladeAngebote().catch(error => {
+                log('Fallback: Zeige Test-Daten wegen Fehler:', error);
+                showTestData();
+            });
+        });
+
+        // Fehler-Handler für unbehandelte Fehler
+        window.addEventListener('error', function(e) {
+            log('Globaler Fehler:', e.error);
+        });
+    </script>
 </body>
-
 </html>

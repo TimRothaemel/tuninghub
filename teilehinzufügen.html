@@ -8,18 +8,41 @@
   <link rel="stylesheet" href="css/teilehinzufügen.css" />
 </head>
 <body>
-  <section id="teile-hinzufuegen" style="max-width: 600px; margin: auto; padding: 2rem;">
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="index.html">
+          <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+        </a>
+      </div>
+      <div class="account-erstellen">
+        <a id="account-link" href="#">
+          <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+        </a>
+      </div>
+    </div>
+
+    <!-- Suchleiste -->
+    <div class="searchbar-wrapper">
+      <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+    </div>
+  </header>
+  <main>
+  <section id="teile-hinzufuegen">
     <h2>Teil hinzufügen</h2>
-
+    
+    <div id="success-message" class="success-message"></div>
+    <div id="error-message" class="error-message"></div>
+    
     <label for="partTitle">Titel</label>
-    <input type="text" id="partTitle" placeholder="z. B. Auspuff S51" />
-
+    <input type="text" id="partTitle" placeholder="z. B. Auspuff S51" />
+    
     <label for="partDescription">Beschreibung</label>
     <textarea id="partDescription" placeholder="Beschreibe das Teil..." rows="4"></textarea>
-
+    
     <label for="partPrice">Preis (in €)</label>
-    <input type="number" id="partPrice" placeholder="z. B. 49.99" step="0.01" min="0"/>
-
+    <input type="number" id="partPrice" placeholder="z. B. 49.99" step="0.01" min="0"/>
+    
     <label for="partCondition">Zustand</label>
     <select id="partCondition">
       <option value="neu">Neu</option>
@@ -27,21 +50,221 @@
       <option value="gebraucht">Gebraucht</option>
       <option value="defekt">Defekt / Bastler</option>
     </select>
-
+    
     <label for="partImage">Bild auswählen</label>
     <input type="file" id="partImage" accept="image/*" />
+    
+    <label>Telefonnummer</label>
+    <div class="phone-wrapper">
+      <span id="userPhoneNumber">Lade...</span>
+      <div class="phone-dropdown">
+        <a href="account.html">Nummer ändern</a>
+      </div>
+    </div>
+    
+    <button id="addPartBtn" onclick="addPart()">Teil hinzufügen</button>
+  </section> 
 
-    <label for="contactNumber">Telefonnummer zur Kontaktaufnahme</label>
-    <select id="contactNumber">
-      <!-- Dynamisch gefüllt per JavaScript -->
-    </select>
-    <input type="text" id="newPhoneNumber" placeholder="Neue Nummer hinzufügen" style="margin-top: 0.5rem;" />
-    <button onclick="addPhoneNumber()" style="margin-bottom: 1rem;">Nummer hinzufügen</button>
+  </main>
+  <footer>
+    <div class="informations">Über TuningHub</div>
+    <div class="informations"><a href="impressum.html">Impressum</a></div>
+    <div class="informations">Support</div>
+    <div class="informations">Social Media</div>
+    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+  </footer>
 
-    <button onclick="addPart()" style="margin-top: 1rem;">Teil hinzufügen</button>
-  </section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/teile.js"></script>
+  <script>
+    // Supabase initialisieren
+    const supabase = window.supabase.createClient(
+      'https://yvdptnkmgfxkrszitweo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo',
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+        },
+      }
+    );
+
+    let userPhone = '';
+    let currentUser = null;
+
+    // Aktuellen Benutzer holen
+    async function getCurrentUser() {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session || !session.user) {
+        showError("Du musst eingeloggt sein.");
+        return null;
+      }
+      return session.user;
+    }
+
+    // Telefonnummer laden
+    async function loadPhoneNumber() {
+      try {
+        currentUser = await getCurrentUser();
+        if (!currentUser) return;
+
+        // Zuerst versuchen, aus user_metadata zu laden
+        if (currentUser.user_metadata?.phone) {
+          userPhone = currentUser.user_metadata.phone;
+          document.getElementById('userPhoneNumber').textContent = userPhone;
+          return;
+        }
+
+        // Dann aus der profiles Tabelle laden
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('phone_number')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (error || !data || !data.phone_number) {
+          document.getElementById('userPhoneNumber').textContent = 'Keine Nummer gefunden';
+          userPhone = '';
+          return;
+        }
+
+        userPhone = data.phone_number;
+        document.getElementById('userPhoneNumber').textContent = userPhone;
+      } catch (error) {
+        console.error('Fehler beim Laden der Telefonnummer:', error);
+        document.getElementById('userPhoneNumber').textContent = 'Fehler beim Laden';
+      }
+    }
+
+    // Erfolgsnachricht anzeigen
+    function showSuccess(message) {
+      const successDiv = document.getElementById('success-message');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.style.display = 'none';
+      
+      setTimeout(() => {
+        successDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    // Fehlernachricht anzeigen
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      
+      const successDiv = document.getElementById('success-message');
+      successDiv.style.display = 'none';
+    }
+
+    // Formular zurücksetzen
+    function resetForm() {
+      document.getElementById("partTitle").value = "";
+      document.getElementById("partDescription").value = "";
+      document.getElementById("partPrice").value = "";
+      document.getElementById("partCondition").value = "neu";
+      document.getElementById("partImage").value = "";
+    }
+
+    // Teil hinzufügen
+    async function addPart() {
+      const button = document.getElementById('addPartBtn');
+      
+      try {
+        // Button deaktivieren
+        button.disabled = true;
+        button.textContent = 'Wird gespeichert...';
+
+        // Eingaben validieren
+        const title = document.getElementById("partTitle").value.trim();
+        const description = document.getElementById("partDescription").value.trim();
+        const price = parseFloat(document.getElementById("partPrice").value.trim());
+        const condition = document.getElementById("partCondition").value;
+        const imageFile = document.getElementById("partImage").files[0];
+
+        if (!title || !description || isNaN(price) || !condition || !imageFile) {
+          showError("Bitte fülle alle Felder korrekt aus und wähle ein Bild.");
+          return;
+        }
+
+        if (!userPhone) {
+          showError("Telefonnummer nicht gefunden. Bitte aktualisiere deine Kontaktdaten.");
+          return;
+        }
+
+        // Benutzer erneut prüfen
+        const user = await getCurrentUser();
+        if (!user) return;
+
+        // Eindeutigen Dateinamen generieren
+        const fileName = `${user.id}_${Date.now()}_${imageFile.name}`;
+
+        // Bild hochladen
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('parts-images')
+          .upload(fileName, imageFile, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: imageFile.type,
+          });
+
+        if (uploadError) {
+          showError("Fehler beim Hochladen des Bildes: " + uploadError.message);
+          return;
+        }
+
+        // Bild-URL generieren
+        const imageUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/parts-images/${fileName}`;
+
+        // Debug: Daten vor dem Insert loggen
+        const insertData = {
+          user_id: user.id,
+          title: title,
+          description: description,
+          price: price,
+          condition: condition,
+          contact_number: userPhone,
+          image_url: imageUrl,
+          created_at: new Date().toISOString()
+        };
+        
+        console.log('Versuche Teil zu speichern:', insertData);
+
+        // Teil in Datenbank speichern
+        const { data: result, error: insertError } = await supabase
+          .from('parts')
+          .insert(insertData);
+
+        if (insertError) {
+          console.error('Insert error details:', insertError);
+          showError("Fehler beim Speichern des Teils: " + insertError.message);
+          
+          // Falls das Bild hochgeladen wurde, aber der Insert fehlschlägt, Bild löschen
+          await supabase.storage
+            .from('parts-images')
+            .remove([fileName]);
+          return;
+        }
+
+        showSuccess("Teil erfolgreich hinzugefügt!");
+        resetForm();
+
+      } catch (error) {
+        console.error('Unerwarteter Fehler:', error);
+        showError("Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.");
+      } finally {
+        // Button wieder aktivieren
+        button.disabled = false;
+        button.textContent = 'Teil hinzufügen';
+      }
+    }
+
+    // Beim Laden der Seite Telefonnummer laden
+    window.addEventListener("DOMContentLoaded", loadPhoneNumber);
+  </script>
 </body>
 </html>
