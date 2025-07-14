@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Business Registrierung – TuningHub</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/registerbusiness.css" />
+</head>
+<body>
+  <section style="max-width: 500px; margin: auto; padding: 2rem;">
+    <h2>Business Account erstellen</h2>
+
+    <label for="email">E-Mail-Adresse</label>
+    <input type="email" id="email" placeholder="name@firma.de" required>
+
+    <label for="password">Passwort</label>
+    <input type="password" id="password" placeholder="Mind. 6 Zeichen" required>
+
+    <label for="companyName">Firmenname</label>
+    <input type="text" id="companyName" placeholder="z. B. MopedParts24" required>
+
+    <label for="contactLink">Kontakt (Instagram, Website o.ä.)</label>
+    <input type="url" id="contactLink" placeholder="https://instagram.com/deinfirma" required>
+
+    <label for="companyDescription">Beschreibung</label>
+    <textarea id="companyDescription" placeholder="Was bietest du an?" rows="4" required></textarea>
+
+    <button onclick="registerBusiness()">Business Account registrieren</button>
+
+    <p style="margin-top: 1rem;">
+      Oder <a href="register.html">zurück zur normalen Registrierung</a>
+    </p>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/register-business.js"></script>
+</body>
+</html>

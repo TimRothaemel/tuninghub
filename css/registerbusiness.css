@@ -1,0 +1,73 @@
+/* register-business.css */
+
+.register-business-container {
+  max-width: 560px;
+  margin: 60px auto;
+  padding: 32px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.register-business-container h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 26px;
+  color: #333;
+}
+
+/* Felder */
+.register-business-container input,
+.register-business-container select,
+.register-business-container textarea {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f9f9f9;
+  font-size: 15px;
+  transition: border-color 0.2s ease;
+}
+
+.register-business-container textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.register-business-container input:focus,
+.register-business-container select:focus,
+.register-business-container textarea:focus {
+  border-color: #28a745;
+  outline: none;
+  background: #fff;
+}
+
+/* Button */
+.register-business-container button {
+  width: 100%;
+  padding: 14px;
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.register-business-container button:hover {
+  background-color: #218838;
+}
+
+/* Info */
+.register-business-container p {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-top: 16px;
+}

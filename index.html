@@ -6,257 +6,7 @@
     <title>TuningHub</title>
     <link rel="stylesheet" href="css/index.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Detailansicht Modal Styles */
-        .detail-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .detail-modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .detail-content {
-            background-color: white;
-            border-radius: 12px;
-            max-width: 900px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .detail-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin: 0;
-        }
-
-        .close-button {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-            padding: 5px;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-
-        .close-button:hover {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        .detail-body {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            padding: 30px;
-        }
-
-        .detail-image-section {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .detail-main-image {
-            width: 100%;
-            height: 300px;
-            object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .detail-info-section {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .detail-price {
-            font-size: 32px;
-            font-weight: bold;
-            color: #007bff;
-            margin: 0;
-        }
-
-        .detail-description {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            line-height: 1.6;
-            color: #333;
-        }
-
-        .detail-meta {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .meta-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .meta-label {
-            font-weight: bold;
-            color: #666;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-
-        .meta-value {
-            color: #333;
-            font-size: 16px;
-        }
-
-        .detail-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .action-button {
-            flex: 1;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .primary-button {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .primary-button:hover {
-            background-color: #0056b3;
-        }
-
-        .secondary-button {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        /* Kontakt-Button spezielle Styles */
-        .primary-button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-
-        .primary-button:disabled:hover {
-            background-color: #6c757d;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .detail-content {
-                width: 95%;
-                max-height: 95vh;
-            }
-
-            .detail-body {
-                grid-template-columns: 1fr;
-                gap: 20px;
-                padding: 20px;
-            }
-
-            .detail-price {
-                font-size: 24px;
-            }
-
-            .detail-actions {
-                flex-direction: column;
-            }
-        }
-
-        /* Animationen */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-            from { 
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* Hover-Effekt für Karten */
-        .card {
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Bestehende Styles für Fehlermeldungen etc. */
-        .error {
-            text-align: center;
-            padding: 40px;
-            color: #dc3545;
-            font-size: 18px;
-            background-color: #f8d7da;
-            border-radius: 8px;
-            margin: 20px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-            font-size: 18px;
-        }
-
-        .empty {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-            font-size: 18px;
-        }
-    </style>
+   
 </head>
 
 <body>
@@ -330,7 +80,7 @@
                     </div>
                     <div class="detail-actions">
                         <button class="action-button primary-button" id="contact-seller-btn">Verkäufer kontaktieren</button>
-                        <button class="action-button secondary-button">Merken</button>
+                        <button class="action-button secondary-button" id="share-btn">Teilen</button>
                     </div>
                 </div>
             </div>
@@ -395,8 +145,9 @@
             const telefon = teil.contact_number || teil.phone || teil.telefon || '';
             const verkäufer = teil.seller_name || teil.user_name || 'Privater Verkäufer';
             const datum = teil.created_at || teil.date || new Date().toISOString();
+            const id = teil.id;
             
-            return { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum };
+            return { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum, id };
         }
 
         // Verkäufer kontaktieren
@@ -447,10 +198,80 @@
             }
         }
 
+        // Teil teilen Funktion
+        function sharePart(id) {
+            if (!id) {
+                alert('Fehler: Teil-ID nicht verfügbar');
+                return;
+            }
+
+            // Link zu index.html mit part parameter
+            const url = `${window.location.origin}/index.html?part=${encodeURIComponent(id)}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Tuning-Teil bei TuningHub',
+                    text: 'Schau dir dieses Teil bei TuningHub an!',
+                    url: url,
+                }).catch(err => console.warn('Sharing failed:', err));
+            } else {
+                // Check if clipboard API is available
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url)
+                        .then(() => alert("Link zum Teil wurde in die Zwischenablage kopiert!"))
+                        .catch(err => {
+                            console.error("Fehler beim Kopieren des Links:", err);
+                            fallbackCopyToClipboard(url);
+                        });
+                } else {
+                    // Fallback method for older browsers or non-HTTPS contexts
+                    fallbackCopyToClipboard(url);
+                }
+            }
+        }
+
+        // Fallback function for copying to clipboard
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert("Link zum Teil wurde in die Zwischenablage kopiert!");
+                } else {
+                    showLinkDialog(text);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                showLinkDialog(text);
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // Show link in a dialog if all copy methods fail
+        function showLinkDialog(url) {
+            const message = `Link konnte nicht automatisch kopiert werden. Bitte kopiere den Link manuell:\n\n${url}`;
+            alert(message);
+        }
+
+        // Globale Variable für aktuelles Teil
+        let currentPart = null;
+
         // Detailansicht öffnen
         function openDetailView(teil) {
             const modal = document.getElementById('detail-modal');
-            const { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum } = extractData(teil);
+            const { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum, id } = extractData(teil);
+            
+            // Aktuelles Teil speichern
+            currentPart = teil;
             
             // Titel setzen
             document.getElementById('detail-title').textContent = name;
@@ -497,6 +318,12 @@
                 contactBtn.textContent = 'Verkäufer kontaktieren';
             }
             
+            // Teilen-Button Event
+            const shareBtn = document.getElementById('share-btn');
+            shareBtn.onclick = function() {
+                sharePart(id);
+            };
+            
             // Modal anzeigen
             modal.classList.add('active');
             document.body.style.overflow = 'hidden'; // Scrollen verhindern
@@ -509,6 +336,7 @@
             const modal = document.getElementById('detail-modal');
             modal.classList.remove('active');
             document.body.style.overflow = ''; // Scrollen wieder erlauben
+            currentPart = null;
             log('Detailansicht geschlossen');
         }
 
@@ -648,6 +476,7 @@
             const container = document.getElementById('angebot-container');
             const testData = [
                 {
+                    id: 'test-1',
                     name: 'BMW M3 Spoiler',
                     preis: 299,
                     beschreibung: 'Originaler BMW M3 Spoiler in sehr gutem Zustand. Perfekt für alle E46 Modelle.',
@@ -659,6 +488,7 @@
                     created_at: '2024-01-15T10:30:00Z'
                 },
                 {
+                    id: 'test-2',
                     name: 'Audi RS4 Felgen',
                     preis: 1200,
                     beschreibung: '19 Zoll Originalfelgen vom Audi RS4, wie neu, ohne Kratzer oder Beschädigungen.',
@@ -670,6 +500,7 @@
                     created_at: '2024-01-10T14:20:00Z'
                 },
                 {
+                    id: 'test-3',
                     name: 'Turbolader Kit',
                     preis: 2500,
                     beschreibung: 'Komplettes Turbolader-Kit für VW Golf GTI, inklusive aller Montageteile.',
@@ -711,6 +542,43 @@
             log('Detailansicht Event-Listener eingerichtet');
         }
 
+        // Handle shared part links
+        function handleSharedPartLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const partId = urlParams.get('part');
+            
+            if (partId) {
+                log('Shared part ID detected:', partId);
+                
+                // Wait for the parts to load, then find and open the specific part
+                setTimeout(async () => {
+                    try {
+                        const { data: part, error } = await supabase
+                            .from('parts')
+                            .select('*')
+                            .eq('id', partId)
+                            .single();
+                        
+                        if (error) {
+                            log('Error loading shared part:', error);
+                            alert('Das geteilte Teil konnte nicht gefunden werden.');
+                            return;
+                        }
+                        
+                        if (part) {
+                            log('Opening shared part:', part);
+                            openDetailView(part);
+                        } else {
+                            alert('Das geteilte Teil existiert nicht mehr.');
+                        }
+                    } catch (error) {
+                        log('Error handling shared part:', error);
+                        alert('Fehler beim Laden des geteilten Teils.');
+                    }
+                }, 1000); // Wait 1 second for other initialization to complete
+            }
+        }
+
         // Initialisierung
         document.addEventListener('DOMContentLoaded', function() {
             log('DOM geladen, starte Initialisierung...');
@@ -729,6 +597,9 @@
                 log('Fallback: Zeige Test-Daten wegen Fehler:', error);
                 showTestData();
             });
+            
+            // Handle shared part links
+            handleSharedPartLink();
         });
 
         // Fehler-Handler für unbehandelte Fehler

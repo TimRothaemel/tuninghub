@@ -10,42 +10,56 @@
 </head>
 
 <body>
-  <header class="header">
-    <div class="header-top">
-      <div class="logo">
-        <a href="index.html">
-          <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
-        </a>
-      </div>
-      <div class="account-erstellen">
-        <a id="account-link" href="#">
-          <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
-        </a>
-      </div>
-    </div>
-  </header>
+     <!-- Header mit Logo & Account -->
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+                </a>
+            </div>
+            <div class="account-erstellen">
+                <a id="account-link" href="#">
+                    <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+                </a>
+            </div>
+        </div>
+        
+        <!-- Suchleiste -->
+        <div class="searchbar-wrapper">
+            <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+        </div>
+    </header>
 
-  <main style="padding: 24px; max-width: 600px; margin: auto;">
-    <div id="userInfo" style="margin-bottom: 24px;">Lade Daten...</div>
+  <main>
+    <div id="userInfo">Lade Daten...</div>
 
-    <h2 style="margin-bottom: 16px;">Account verwalten</h2>
+    <h2>Account verwalten</h2>
+    
+    <h3>Weitere Optionen</h3>
+    <a href="meineteile.html" class="button-link">
+      Meine Angebote bearbeiten
+    </a>
 
+    <h3>E-Mail ändern</h3>
     <label for="newEmail">Neue E-Mail</label>
     <input type="email" id="newEmail" placeholder="Neue E-Mail-Adresse">
     <button onclick="updateEmail()">E-Mail ändern</button>
 
+    <h3>Passwort ändern</h3>
     <label for="newPassword">Neues Passwort</label>
     <input type="password" id="newPassword" placeholder="Neues Passwort">
     <button onclick="updatePassword()">Passwort ändern</button>
 
-    <!-- Deaktivierte Felder -->
+    <!-- Aktivierte Felder für Metadaten -->
+    <h3>Weitere Einstellungen</h3>
     <label for="newUsername">Neuer Benutzername</label>
-    <input type="text" id="newUsername" placeholder="Nicht verfügbar" disabled>
-    <button onclick="updateUsername()" disabled>Benutzername ändern</button>
+    <input type="text" id="newUsername" placeholder="Aktueller Benutzername wird geladen...">
+    <button onclick="updateUsername()">Benutzername ändern</button>
 
     <label for="newPhone">Telefonnummer</label>
-    <input type="text" id="newPhone" placeholder="Nicht verfügbar" disabled>
-    <button onclick="updatePhone()" disabled>Telefonnummer speichern</button>
+    <input type="text" id="newPhone" placeholder="Aktuelle Telefonnummer wird geladen...">
+    <button onclick="updatePhone()">Telefonnummer speichern</button>
 
     <hr style="margin: 24px 0;" />
 
@@ -64,64 +78,364 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
-
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+    // Globale Variablen
+    let supabase;
     let currentUser = null;
+    let isInitialized = false;
+
+    // Utility functions
+    function showError(message) {
+      const userInfo = document.getElementById("userInfo");
+      userInfo.innerHTML = `<div class="error">${message}</div>`;
+    }
+
+    function showLoading(message = "Lade Daten...") {
+      const userInfo = document.getElementById("userInfo");
+      userInfo.innerHTML = `<div class="loading">${message}</div>`;
+    }
+
+    function showUserInfo(user) {
+      const userInfo = document.getElementById("userInfo");
+      userInfo.innerHTML = `
+        <strong>Eingeloggt als:</strong> ${user.email}<br>
+        <small>Letzte Anmeldung: ${new Date(user.last_sign_in_at).toLocaleString('de-DE')}</small>
+      `;
+    }
+
+    // Initialisierung mit verbesserter Fehlerbehandlung
+    async function initializeSupabase() {
+      try {
+        const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+        
+        // Prüfe verschiedene mögliche Supabase Objekte
+        const supabaseLib = window.supabase || window.Supabase;
+        
+        if (!supabaseLib) {
+          throw new Error('Supabase Library wurde nicht geladen');
+        }
+
+        // Versuche createClient mit verschiedenen Methoden
+        if (supabaseLib.createClient) {
+          supabase = supabaseLib.createClient(supabaseUrl, supabaseKey);
+        } else if (supabaseLib.default && supabaseLib.default.createClient) {
+          supabase = supabaseLib.default.createClient(supabaseUrl, supabaseKey);
+        } else {
+          throw new Error('createClient Methode nicht gefunden');
+        }
+        
+        // Test die Verbindung
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.warn('Supabase Verbindungswarnung:', error.message);
+          // Nicht als Fehler behandeln, da getSession manchmal Warnungen zurückgibt
+        }
+
+        isInitialized = true;
+        console.log('Supabase erfolgreich initialisiert');
+        
+        return true;
+      } catch (error) {
+        console.error('Fehler bei der Initialisierung:', error);
+        showError(`Initialisierungsfehler: ${error.message}`);
+        return false;
+      }
+    }
 
     async function loadUser() {
-      const { data, error } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error("Fehler beim Laden:", error.message);
+      if (!isInitialized) {
+        showError("System noch nicht bereit. Bitte lade die Seite neu.");
         return;
       }
 
-      if (!data.user) {
-        window.location.href = "login.html";
-        return;
-      }
+      try {
+        showLoading("Lade Benutzerdaten...");
+        
+        const { data, error } = await supabase.auth.getUser();
 
-      currentUser = data.user;
-      document.getElementById("userInfo").innerText = "Eingeloggt als: " + currentUser.email;
+        if (error) {
+          console.error("Fehler beim Laden:", error.message);
+          showError(`Fehler beim Laden der Benutzerdaten: ${error.message}`);
+          return;
+        }
+
+        if (!data.user) {
+          showError("Nicht eingeloggt. Weiterleitung zur Anmeldung...");
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 2000);
+          return;
+        }
+
+        currentUser = data.user;
+        showUserInfo(currentUser);
+        
+        // Lade Metadaten (Benutzername und Telefonnummer)
+        const metadata = currentUser.user_metadata || {};
+        const usernameInput = document.getElementById("newUsername");
+        const phoneInput = document.getElementById("newPhone");
+        
+        if (usernameInput) {
+          usernameInput.placeholder = metadata.username || "Kein Benutzername gesetzt";
+        }
+        if (phoneInput) {
+          phoneInput.placeholder = metadata.phone || "Keine Telefonnummer gesetzt";
+        }
+        
+      } catch (error) {
+        console.error("Unerwarteter Fehler:", error);
+        showError(`Unerwarteter Fehler: ${error.message}`);
+      }
     }
 
     async function updateEmail() {
-      const email = document.getElementById("newEmail").value;
-      const { error } = await supabase.auth.updateUser({ email });
-      if (error) return alert("Fehler: " + error.message);
-      alert("E-Mail geändert!");
+      if (!isInitialized) {
+        alert("System noch nicht bereit. Bitte lade die Seite neu.");
+        return;
+      }
+
+      const email = document.getElementById("newEmail").value.trim();
+      
+      if (!email || !email.includes('@')) {
+        alert("Bitte gib eine gültige E-Mail-Adresse ein");
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.updateUser({ email });
+        if (error) {
+          alert("Fehler: " + error.message);
+          return;
+        }
+        alert("E-Mail-Änderung angefordert! Bitte überprüfe deine E-Mails für die Bestätigung.");
+        document.getElementById("newEmail").value = "";
+      } catch (error) {
+        alert("Unerwarteter Fehler: " + error.message);
+      }
     }
 
     async function updatePassword() {
+      if (!isInitialized) {
+        alert("System noch nicht bereit. Bitte lade die Seite neu.");
+        return;
+      }
+
       const pw = document.getElementById("newPassword").value;
-      const { error } = await supabase.auth.updateUser({ password: pw });
-      if (error) return alert("Fehler: " + error.message);
-      alert("Passwort geändert!");
+      
+      if (!pw || pw.length < 6) {
+        alert("Das Passwort muss mindestens 6 Zeichen lang sein");
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.updateUser({ password: pw });
+        if (error) {
+          alert("Fehler: " + error.message);
+          return;
+        }
+        alert("Passwort erfolgreich geändert!");
+        document.getElementById("newPassword").value = "";
+      } catch (error) {
+        alert("Unerwarteter Fehler: " + error.message);
+      }
     }
 
+    async function updateUsername() {
+      if (!isInitialized) {
+        alert("System noch nicht bereit. Bitte lade die Seite neu.");
+        return;
+      }
+
+      const username = document.getElementById("newUsername").value.trim();
+      
+      if (!username) {
+        alert("Bitte gib einen Benutzernamen ein");
+        return;
+      }
+
+      try {
+        // Hole den aktuellen User
+        const { data, error: userError } = await supabase.auth.getUser();
+        if (userError || !data.user) {
+          alert("Fehler beim Laden der Benutzerdaten: " + (userError?.message || "Benutzer nicht gefunden"));
+          return;
+        }
+
+        const user = data.user;
+        const currentMetadata = user.user_metadata || {};
+        
+        const { error } = await supabase.auth.updateUser({ 
+          data: { 
+            ...currentMetadata,
+            username: username 
+          } 
+        });
+        
+        if (error) {
+          alert("Fehler: " + error.message);
+          return;
+        }
+        
+        alert("Benutzername erfolgreich geändert!");
+        document.getElementById("newUsername").value = "";
+        document.getElementById("newUsername").placeholder = username;
+        
+        // Aktualisiere die Anzeige
+        setTimeout(() => loadUser(), 1000);
+      } catch (error) {
+        console.error("Fehler beim Aktualisieren des Benutzernamens:", error);
+        alert("Unerwarteter Fehler: " + error.message);
+      }
+    }
+
+    async function updatePhone() {
+      if (!isInitialized) {
+        alert("System noch nicht bereit. Bitte lade die Seite neu.");
+        return;
+      }
+
+      const phone = document.getElementById("newPhone").value.trim();
+      
+      if (!phone) {
+        alert("Bitte gib eine Telefonnummer ein");
+        return;
+      }
+
+      try {
+        // Hole den aktuellen User
+        const { data, error: userError } = await supabase.auth.getUser();
+        if (userError || !data.user) {
+          alert("Fehler beim Laden der Benutzerdaten: " + (userError?.message || "Benutzer nicht gefunden"));
+          return;
+        }
+
+        const user = data.user;
+        const currentMetadata = user.user_metadata || {};
+        
+        const { error } = await supabase.auth.updateUser({ 
+          data: { 
+            ...currentMetadata,
+            phone: phone 
+          } 
+        });
+        
+        if (error) {
+          alert("Fehler: " + error.message);
+          return;
+        }
+        
+        alert("Telefonnummer erfolgreich gespeichert!");
+        document.getElementById("newPhone").value = "";
+        document.getElementById("newPhone").placeholder = phone;
+        
+        // Aktualisiere die Anzeige
+        setTimeout(() => loadUser(), 1000);
+      } catch (error) {
+        console.error("Fehler beim Aktualisieren der Telefonnummer:", error);
+        alert("Unerwarteter Fehler: " + error.message);
+      }
+    }
 
     async function logout() {
-      await supabase.auth.signOut();
-      window.location.href = "login.html";
+      if (!isInitialized) {
+        alert("System noch nicht bereit.");
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          alert("Fehler beim Abmelden: " + error.message);
+          return;
+        }
+        window.location.href = "login.html";
+      } catch (error) {
+        console.error("Fehler beim Abmelden:", error);
+        alert("Fehler beim Abmelden: " + error.message);
+      }
     }
 
     async function deleteAccount() {
-      const confirmDelete = confirm("Willst du deinen Account wirklich löschen?");
+      if (!isInitialized) {
+        alert("System noch nicht bereit.");
+        return;
+      }
+
+      const confirmDelete = confirm("Willst du deinen Account wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden!");
       if (!confirmDelete) return;
 
-      const { error } = await supabase.rpc("delete_user", { 
-        user_id: currentUser.id 
-      });
-      
-      if (error) return alert("Fehler: " + error.message);
-      alert("Account gelöscht!");
-      window.location.href = "login.html";
+      const doubleConfirm = confirm("Bist du dir absolut sicher? Alle deine Daten werden unwiderruflich gelöscht!");
+      if (!doubleConfirm) return;
+
+      try {
+        const { data, error: userError } = await supabase.auth.getUser();
+        if (userError || !data.user) {
+          alert("Fehler beim Laden der Benutzerdaten");
+          return;
+        }
+
+        const { error } = await supabase.rpc("delete_user", { 
+          user_id: data.user.id 
+        });
+        
+        if (error) {
+          alert("Fehler beim Löschen des Accounts: " + error.message);
+          return;
+        }
+        
+        alert("Account erfolgreich gelöscht!");
+        window.location.href = "login.html";
+      } catch (error) {
+        alert("Unerwarteter Fehler beim Löschen: " + error.message);
+      }
     }
     
-    loadUser();
+    // Initialisierung und Laden der Benutzerdaten
+    window.addEventListener('DOMContentLoaded', async function() {
+      console.log('DOM geladen, starte Initialisierung...');
+      
+      // Warte auf das Laden der Supabase Library
+      let attempts = 0;
+      const maxAttempts = 20; // Erhöht von 10 auf 20
+      
+      const waitForSupabase = () => {
+        return new Promise((resolve) => {
+          const checkSupabase = () => {
+            // Prüfe verschiedene mögliche Supabase Objekte
+            if (window.supabase || window.Supabase) {
+              resolve(true);
+            } else if (attempts < maxAttempts) {
+              attempts++;
+              console.log(`Warte auf Supabase... Versuch ${attempts}/${maxAttempts}`);
+              setTimeout(checkSupabase, 200); // Reduziert von 500ms auf 200ms
+            } else {
+              resolve(false);
+            }
+          };
+          checkSupabase();
+        });
+      };
+
+      const supabaseLoaded = await waitForSupabase();
+      
+      if (!supabaseLoaded) {
+        showError("Supabase Library konnte nicht geladen werden. Bitte lade die Seite neu oder prüfe deine Internetverbindung.");
+        return;
+      }
+
+      console.log('Supabase Library erfolgreich geladen');
+      const initialized = await initializeSupabase();
+      
+      if (initialized) {
+        await loadUser();
+      }
+    });
+
+    // Fehlerbehandlung für unbehandelte Fehler
+    window.addEventListener('error', function(event) {
+      console.error('Unbehandelter Fehler:', event.error);
+      showError(`Ein unerwarteter Fehler ist aufgetreten: ${event.error?.message || 'Unbekannter Fehler'}`);
+    });
   </script>
 </body>
 

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meine Teile – TuningHub</title>
+  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/meineteile.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="index.html">
+          <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+        </a>
+      </div>
+      <div class="account-erstellen">
+        <a id="account-link" href="#">
+          <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+        </a>
+      </div>
+    </div>
+
+    <!-- Suchleiste -->
+    <div class="searchbar-wrapper">
+      <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+    </div>
+  </header>
+
+  <main>
+    <h2>Meine Teile</h2>
+    <div id="partsList">Lade...</div>
+  </main>
+
+  <footer>
+    <div class="informations">Über TuningHub</div>
+    <div class="informations"><a href="impressum.html">Impressum</a></div>
+    <div class="informations">Support</div>
+    <div class="informations">Social Media</div>
+    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const { createClient } = supabase;
+    const supabaseClient = createClient(
+      'https://yvdptnkmgfxkrszitweo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo'
+    );
+
+    let currentUser = null;
+
+    // Funktion zum Escapen von HTML
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function loadParts() {
+      const container = document.getElementById("partsList");
+      
+      try {
+        console.log('Checking authentication...');
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          container.innerHTML = '<div class="error-state">Authentifizierungsfehler: ' + sessionError.message + '</div>';
+          return;
+        }
+
+        const user = sessionData?.session?.user;
+        console.log('User:', user);
+
+        if (!user) {
+          console.log('No user found, redirecting to login...');
+          window.location.href = "login.html";
+          return;
+        }
+
+        currentUser = user;
+        console.log('Loading parts for user:', user.id);
+
+        const { data: parts, error } = await supabaseClient
+          .from("parts")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        console.log('Parts query result:', { parts, error });
+
+        if (error) {
+          console.error('Error loading parts:', error);
+          container.innerHTML = '<div class="error-state">Fehler beim Laden der Teile: ' + error.message + '</div>';
+          return;
+        }
+
+        if (!parts || parts.length === 0) {
+          console.log('No parts found for user');
+          container.innerHTML = '<div class="empty-state">Du hast noch keine Teile hinzugefügt.</div>';
+          return;
+        }
+
+        console.log('Found', parts.length, 'parts');
+        container.innerHTML = "";
+
+        parts.forEach(part => {
+          const div = document.createElement("div");
+          div.className = "part";
+
+          const partId = part.id;
+          if (!partId) {
+            console.error('Part missing ID:', part);
+            return;
+          }
+
+          div.innerHTML = `
+            <img src="${part.image_url || 'img/placeholder.png'}" alt="Bild von ${part.title}" onerror="this.src='img/placeholder.png'">
+            <h3>${escapeHtml(part.title || '')}</h3>
+            <p>${escapeHtml(part.description || '')}</p>
+            <p><strong>Preis:</strong> ${part.price || 0} €</p>
+            <p><strong>Zustand:</strong> ${escapeHtml(part.condition || '')}</p>
+            <p><strong>Telefon:</strong> ${escapeHtml(part.contact_number || '')}</p>
+            <p><strong>ID:</strong> ${partId}</p>
+            <div class="part-actions">
+              <button class="delete-btn">Löschen</button>
+              <button class="share-btn">Teilen</button>
+            </div>
+          `;
+
+          const deleteButton = div.querySelector('.delete-btn');
+          const shareButton = div.querySelector('.share-btn');
+
+          deleteButton.addEventListener('click', () => deletePart(partId));
+          shareButton.addEventListener('click', () => sharePart(partId));
+
+          container.appendChild(div);
+        });
+      } catch (error) {
+        console.error('Error in loadParts:', error);
+        container.innerHTML = '<div class="error-state">Ein Fehler ist aufgetreten: ' + error.message + '</div>';
+      }
+    }
+
+    async function deletePart(id) {
+      if (!confirm("Möchtest du dieses Teil wirklich löschen?")) return;
+
+      try {
+        const { error } = await supabaseClient.from("parts").delete().eq("id", id);
+        if (error) {
+          alert("Fehler beim Löschen: " + error.message);
+          return;
+        }
+        alert("Teil gelöscht!");
+        loadParts();
+      } catch (error) {
+        console.error('Error deleting part:', error);
+        alert("Ein Fehler ist aufgetreten.");
+      }
+    }
+
+    // Updated sharePart function for meineteile.html
+    function sharePart(id) {
+      // Link to index.html with part parameter
+      const url = `${window.location.origin}/index.html?part=${encodeURIComponent(id)}`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: 'Mein Tuning-Teil',
+          text: 'Schau dir dieses Teil bei TuningHub an!',
+          url: url,
+        }).catch(err => console.warn('Sharing failed:', err));
+      } else {
+        // Check if clipboard API is available
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url)
+            .then(() => alert("Link zum Teil wurde in die Zwischenablage kopiert!"))
+            .catch(err => {
+              console.error("Fehler beim Kopieren des Links:", err);
+              fallbackCopyToClipboard(url);
+            });
+        } else {
+          // Fallback method for older browsers or non-HTTPS contexts
+          fallbackCopyToClipboard(url);
+        }
+      }
+    }
+
+    // Fallback function for copying to clipboard
+    function fallbackCopyToClipboard(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          alert("Link zum Teil wurde in die Zwischenablage kopiert!");
+        } else {
+          showLinkDialog(text);
+        }
+      } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showLinkDialog(text);
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    }
+
+    // Show link in a dialog if all copy methods fail
+    function showLinkDialog(url) {
+      const message = `Link konnte nicht automatisch kopiert werden. Bitte kopiere den Link manuell:\n\n${url}`;
+      alert(message);
+    }
+
+    // Function to add to index.html to handle shared part links
+    function handleSharedPartLink() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const partId = urlParams.get('part');
+      
+      if (partId) {
+        console.log('Shared part ID detected:', partId);
+        
+        // Wait for the parts to load, then find and open the specific part
+        setTimeout(async () => {
+          try {
+            const { data: part, error } = await supabaseClient
+              .from('parts')
+              .select('*')
+              .eq('id', partId)
+              .single();
+            
+            if (error) {
+              console.log('Error loading shared part:', error);
+              alert('Das geteilte Teil konnte nicht gefunden werden.');
+              return;
+            }
+            
+            if (part) {
+              console.log('Opening shared part:', part);
+              openDetailView(part);
+            } else {
+              alert('Das geteilte Teil existiert nicht mehr.');
+            }
+          } catch (error) {
+            console.log('Error handling shared part:', error);
+            alert('Fehler beim Laden des geteilten Teils.');
+          }
+        }, 1000); // Wait 1 second for other initialization to complete
+      }
+    }
+
+    // Initialisierung beim Laden der Seite
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, initializing...');
+      loadParts();
+    });
+
+    // Fallback für ältere Browser
+    window.addEventListener('load', function() {
+      console.log('Window loaded, checking if parts are loaded...');
+      const container = document.getElementById("partsList");
+      if (container && container.innerHTML === 'Lade...') {
+        console.log('Parts not loaded yet, trying again...');
+        loadParts();
+      }
+    });
+  </script>
+</body>
+</html>
