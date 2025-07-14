@@ -7,24 +7,33 @@
   <title>Registrieren – TuningHub</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/register.css" />
 
 </head>
 
 <body>
-  <header class="header">
-    <div class="header-top">
-      <div class="logo">
-        <a href="index.html"><img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo"
-            height="50" /></a>
-      </div>
-      <div class="account-erstellen">
-        <a id="account-link" href="#"><img src="img/account-icon-schwarz.svg" alt="Account" width="36"
-            height="36" /></a>
-      </div>
-    </div>
-  </header>
+<header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+                </a>
+            </div>
+            <div class="account-erstellen">
+                <a id="account-link" href="#">
+                    <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+                </a>
+            </div>
+        </div>
+        
+        <!-- Suchleiste -->
+        <div class="searchbar-wrapper">
+            <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+        </div>
+    </header>
   <main>
-    <h1>Registrieren</h1>
+    <h1 class="main-überschrift">Registrieren</h1>
+    <div class="form-wrapper">
     <form id="register-form">
       <input type="text" id="username" placeholder="Vollständiger Name" required />
       <input type="tel" id="phone" placeholder="Telefonnummer" required />
@@ -33,6 +42,7 @@
       <button type="submit">Registrieren</button>
       <p id="error"></p>
     </form>
+</div>
     <p style="margin-top: 1rem;">
   <a href="registerbusiness.html">Für gewerbliche Nutzer</a>
 </p>

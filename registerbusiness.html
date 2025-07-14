@@ -4,12 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Business Registrierung – TuningHub</title>
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/index.css"/>
   <link rel="stylesheet" href="css/registerbusiness.css" />
 </head>
 <body>
+  <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+                </a>
+            </div>
+            <div class="account-erstellen">
+                <a id="account-link" href="#">
+                    <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+                </a>
+            </div>
+        </div>
+        
+        <!-- Suchleiste -->
+        <div class="searchbar-wrapper">
+            <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+        </div>
+    </header>
+  <main>
+    <div class="form-wrapper">
   <section style="max-width: 500px; margin: auto; padding: 2rem;">
-    <h2>Business Account erstellen</h2>
+    <h2 class="main-überschrift" >Business Account erstellen</h2>
 
     <label for="email">E-Mail-Adresse</label>
     <input type="email" id="email" placeholder="name@firma.de" required>
@@ -31,9 +52,16 @@
     <p style="margin-top: 1rem;">
       Oder <a href="register.html">zurück zur normalen Registrierung</a>
     </p>
-  </section>
-
+  </section></div>
+</main>
+  <footer>
+    <div class="informations">Über TuningHub</div>
+    <div class="informations"><a href="impressum.html">Impressum</a></div>
+    <div class="informations">Support</div>
+    <div class="informations">Social Media</div>
+    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+  </footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/register-business.js"></script>
+ 
 </body>
 </html>
