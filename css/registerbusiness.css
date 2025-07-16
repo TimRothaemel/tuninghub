@@ -1,32 +1,88 @@
-body main section input{
-    width: 100%;
-  max-width: 400px;
+/* registerbusiness.css */
+
+/* Grundlegende Stile für das Formular */
+.form-wrapper {
+  padding: 2rem 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.main-überschrift {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+/* Stile für Formular-Elemente */
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: -0.5rem;
+  color: #444;
+}
+
+input, textarea {
+  width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid #ccc;
   background: #fff;
   font-size: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  margin: 8px;
+  margin-bottom: 1rem;
 }
-body main section textarea{
-    width: 100%;
-  max-width: 400px;
-  padding: 12px 16px;
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Stil für den Business-Button */
+button {
+  width: 100%;
+  padding: 14px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fff;
-  font-size: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  margin: 8px;
+  border: none;
+  background-color: #007BFF;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
-.form-wrapper{
-padding: 16px;
-display: flex;
-justify-content: center;
+
+button:hover {
+  background-color: #0056b3;
 }
-.main-überschrift{
-margin-top: 16px;
-display: flex;
-justify-content: center;
+
+/* Stil für den "Zurück"-Link */
+section > a {
+  display: block;
+  text-align: center;
+  color: #007BFF;
+  text-decoration: none;
+  margin-top: -0.5rem;
+}
+
+section > a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 600px) {
+  .form-wrapper {
+    padding: 1rem;
+  }
+  
+  .main-überschrift {
+    font-size: 1.3rem;
+  }
 }

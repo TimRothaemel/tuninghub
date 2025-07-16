@@ -1,5 +1,5 @@
-body main input{
-    width: 100%;
+body main input {
+  width: 100%;
   max-width: 400px;
   padding: 12px 16px;
   border-radius: 8px;
@@ -7,15 +7,70 @@ body main input{
   background: #fff;
   font-size: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  margin: 8px;
+  margin: 8px auto; /* Zentriert die Eingabefelder */
+  display: block; /* Wichtig für margin: auto */
 }
-.form-wrapper{
-padding: 16px;
-display: flex;
-justify-content: center;
+
+.form-wrapper {
+  padding: 16px;
+  width: 100%;
 }
-.main-überschrift{
-margin-top: 16px;
-display: flex;
-justify-content: center;
+
+.main-überschrift {
+  margin-top: 16px;
+  text-align: center; /* Einfache Zentrierung für Text */
+}
+
+/* Optional: Hauptcontainer sicherstellen */
+main {
+  width: 100%;
+}
+/* Stil für den Business-Button */
+.button {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #007BFF; /* Blaue Farbe wie in der Vorlage */
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 8px auto;
+  display: block;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+  background-color: #0056b3; /* Dunkleres Blau für Hover-Effekt */
+}
+
+/* Stil für den "Zurück"-Link */
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  color: #007BFF;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* Stil für Textarea */
+textarea {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  margin: 8px auto;
+  display: block;
+  resize: vertical;
 }
