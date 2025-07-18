@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="css/index.css" />
   <link rel="stylesheet" href="css/register.css" />
-
 </head>
 
 <body>
@@ -33,24 +32,19 @@
     </header>
   <main>
     <h1 class="main-überschrift">Registrieren</h1>
-<div class="form-wrapper">
-    <section id="register-form">
+    <div class="form-wrapper">
+    <form id="register-form">
       <input type="text" id="username" placeholder="Vollständiger Name" required />
       <input type="tel" id="phone" placeholder="Telefonnummer" required />
       <input type="email" id="email" placeholder="E-Mail" required />
       <input type="password" id="password" placeholder="Passwort" required /> 
-        <div class="button-group">
-    <button type="submit" class="button">Account registrieren</button>
-    <a href="registerbusiness.html" class="back-link">Du hast ein Gewerbe?</a>
-  </div>
-      <p id="error"> </p>
-
-    </section>
+      <div class="button-group">
+        <button type="submit" class="button">Account registrieren</button>
+        <a href="registerbusiness.html" class="back-link">Du hast ein Gewerbe?</a>
+      </div>
+      <p id="error"></p>
+    </form>
    </div>
-
-  
-
-
   </main>
  <footer>
         <div class="informations"><a href="übertuninghub.html">TuningHub</a> </div>
@@ -75,36 +69,45 @@
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    errorText.style.color = 'black';
-    errorText.textContent = 'Registrierung läuft...';
-
-    const { data: signupData, error: signupError } = await client.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
-          phone
-        }
-      }
-    });
-
-    if (signupError) {
+    // Überprüfen ob alle Felder ausgefüllt sind
+    if (!username || !phone || !email || !password) {
       errorText.style.color = 'red';
-      errorText.textContent = 'Fehler: ' + signupError.message;
+      errorText.textContent = 'Bitte füllen Sie alle Felder aus.';
       return;
     }
 
-    errorText.style.color = 'green';
-    errorText.textContent = 'Registrierung erfolgreich! Weiterleitung...';
+    errorText.style.color = 'black';
+    errorText.textContent = 'Registrierung läuft...';
 
-    // Kurze Verzögerung zur Anzeige der Erfolgsmeldung
-    setTimeout(() => {
-      window.location.href = 'account.html';
-    }, 1500);
+    try {
+      const { data: signupData, error: signupError } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+            phone
+          }
+        }
+      });
+
+      if (signupError) {
+        throw signupError;
+      }
+
+      errorText.style.color = 'green';
+      errorText.textContent = 'Registrierung erfolgreich! Weiterleitung...';
+
+      // Kurze Verzögerung zur Anzeige der Erfolgsmeldung
+      setTimeout(() => {
+        window.location.href = 'account.html';
+      }, 1500);
+    } catch (error) {
+      console.error('Registrierungsfehler:', error);
+      errorText.style.color = 'red';
+      errorText.textContent = 'Fehler: ' + error.message;
+    }
   });
 </script>
-
 </body>
-
 </html>

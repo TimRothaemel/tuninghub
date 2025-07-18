@@ -1,39 +1,124 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Meine Teile – TuningHub</title>
-  <link rel="stylesheet" href="css/index.css" />
-  <link rel="stylesheet" href="css/meineteile.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meine Teile – TuningHub</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/meineteile.css" />
+    <style>
+        /* Zusätzliche Styles für diese Seite */
+        main {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h2 {
+            margin: 20px 0;
+            color: #333;
+            font-size: 1.8rem;
+            padding: 0 24px;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .empty-state a {
+            color: #0077cc;
+            text-decoration: none;
+        }
+        
+        .empty-state a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-  <header class="header">
-    <div class="header-top">
-      <div class="logo">
-        <a href="index.html">
-          <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
-        </a>
-      </div>
-      <div class="account-erstellen">
-        <a id="account-link" href="#">
-          <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
-        </a>
-      </div>
+    <!-- Header mit Logo & Account -->
+    <header class="header">
+        <div class="header-top">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+                </a>
+            </div>
+            <div class="account-erstellen">
+                <a id="account-link" href="#">
+                    <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+                </a>
+            </div>
+        </div>
+        
+        <!-- Suchleiste -->
+        <div class="searchbar-wrapper">
+            <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
+        </div>
+    </header>
+
+    <!-- Hauptinhalt -->
+    <main>
+        <h2>Meine Teile</h2>
+        <!-- Container für dynamische Karten -->
+        <div class="grid-container" id="angebot-container">
+            <!-- Dynamische Karten werden hier eingefügt -->
+        </div>
+    </main>
+
+    <!-- Detailansicht Modal (gleich wie in index.html) -->
+    <div class="detail-modal" id="detail-modal">
+        <div class="detail-content">
+            <div class="detail-header">
+                <h1 class="detail-title" id="detail-title">Titel</h1>
+                <button class="close-button" id="close-detail">&times;</button>
+            </div>
+            <div class="detail-body">
+                <div class="detail-image-section">
+                    <img id="detail-image" class="detail-main-image" src="" alt="" />
+                </div>
+                <div class="detail-info-section">
+                    <p class="detail-price" id="detail-price">0€</p>
+                    <div class="detail-description" id="detail-description">
+                        Keine Beschreibung verfügbar.
+                    </div>
+                    <div class="detail-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Kategorie</span>
+                            <span class="meta-value" id="detail-category">Tuning-Teil</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Zustand</span>
+                            <span class="meta-value" id="detail-condition">Gebraucht</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Verkäufer</span>
+                            <span class="meta-value" id="detail-seller">Kontakt über Telefon</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Telefon</span>
+                            <span class="meta-value" id="detail-phone">Wird beim Kontakt angezeigt</span>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="action-button primary-button" id="contact-seller-btn">Verkäufer kontaktieren</button>
+                        <button class="action-button secondary-button" id="share-btn">Teilen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Suchleiste -->
-    <div class="searchbar-wrapper">
-      <input type="text" class="searchbar" placeholder="Suche nach Teilen, Marken..." />
-    </div>
-  </header>
-
-  <main>
-    <h2>Meine Teile</h2>
-    <div id="partsList">Lade...</div>
-  </main>
-
- <footer>
+    <!-- Footer -->
+    <footer>
         <div class="informations"><a href="übertuninghub.html">TuningHub</a> </div>
         <div class="informations"><a href="impressum.html">Impressum</a></div>
         <div class="informations"> <a href="support.html"> Support</a></div>
@@ -41,238 +126,299 @@
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const { createClient } = supabase;
-    const supabaseClient = createClient(
-      'https://yvdptnkmgfxkrszitweo.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo'
-    );
-
-    let currentUser = null;
-
-    // Funktion zum Escapen von HTML
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    async function loadParts() {
-      const container = document.getElementById("partsList");
-      
-      try {
-        console.log('Checking authentication...');
-        const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase Setup
+        const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
         
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          container.innerHTML = '<div class="error-state">Authentifizierungsfehler: ' + sessionError.message + '</div>';
-          return;
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        // Funktion zum Laden der Teile des aktuellen Benutzers
+        async function ladeAngebote() {
+            const container = document.getElementById('angebot-container');
+            container.innerHTML = '<div class="loading">🔄 Lade deine Teile...</div>';
+
+            try {
+                // Aktuelle Session überprüfen
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                
+                if (userError || !user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                currentUser = user;
+
+                // Teile des aktuellen Benutzers laden
+                const { data: parts, error } = await supabase
+                    .from('parts')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!parts || parts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            Du hast noch keine Teile hinzugefügt.<br><br>
+                            <a href="teilehinzufügen.html">Jetzt Teil hinzufügen</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+                parts.forEach(teil => {
+                    const card = createCard(teil);
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Fehler beim Laden der Teile:', error);
+                container.innerHTML = '<div class="error">❌ Fehler beim Laden deiner Teile</div>';
+            }
         }
 
-        const user = sessionData?.session?.user;
-        console.log('User:', user);
-
-        if (!user) {
-          console.log('No user found, redirecting to login...');
-          window.location.href = "login.html";
-          return;
-        }
-
-        currentUser = user;
-        console.log('Loading parts for user:', user.id);
-
-        const { data: parts, error } = await supabaseClient
-          .from("parts")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-
-        console.log('Parts query result:', { parts, error });
-
-        if (error) {
-          console.error('Error loading parts:', error);
-          container.innerHTML = '<div class="error-state">Fehler beim Laden der Teile: ' + error.message + '</div>';
-          return;
-        }
-
-        if (!parts || parts.length === 0) {
-          console.log('No parts found for user');
-          container.innerHTML = '<div class="empty-state">Du hast noch keine Teile hinzugefügt.</div>';
-          return;
-        }
-
-        console.log('Found', parts.length, 'parts');
-        container.innerHTML = "";
-
-        parts.forEach(part => {
-          const div = document.createElement("div");
-          div.className = "part";
-
-          const partId = part.id;
-          if (!partId) {
-            console.error('Part missing ID:', part);
-            return;
-          }
-
-          div.innerHTML = `
-            <img src="${part.image_url || 'img/placeholder.png'}" alt="Bild von ${part.title}" onerror="this.src='img/placeholder.png'">
-            <h3>${escapeHtml(part.title || '')}</h3>
-            <p>${escapeHtml(part.description || '')}</p>
-            <p><strong>Preis:</strong> ${part.price || 0} €</p>
-            <p><strong>Zustand:</strong> ${escapeHtml(part.condition || '')}</p>
-            <p><strong>Telefon:</strong> ${escapeHtml(part.contact_number || '')}</p>
-            <p><strong>ID:</strong> ${partId}</p>
-            <div class="part-actions">
-              <button class="delete-btn">Löschen</button>
-              <button class="share-btn">Teilen</button>
-            </div>
-          `;
-
-          const deleteButton = div.querySelector('.delete-btn');
-          const shareButton = div.querySelector('.share-btn');
-
-          deleteButton.addEventListener('click', () => deletePart(partId));
-          shareButton.addEventListener('click', () => sharePart(partId));
-
-          container.appendChild(div);
-        });
-      } catch (error) {
-        console.error('Error in loadParts:', error);
-        container.innerHTML = '<div class="error-state">Ein Fehler ist aufgetreten: ' + error.message + '</div>';
-      }
-    }
-
-    async function deletePart(id) {
-      if (!confirm("Möchtest du dieses Teil wirklich löschen?")) return;
-
-      try {
-        const { error } = await supabaseClient.from("parts").delete().eq("id", id);
-        if (error) {
-          alert("Fehler beim Löschen: " + error.message);
-          return;
-        }
-        alert("Teil gelöscht!");
-        loadParts();
-      } catch (error) {
-        console.error('Error deleting part:', error);
-        alert("Ein Fehler ist aufgetreten.");
-      }
-    }
-
-    // Updated sharePart function for meineteile.html
-    function sharePart(id) {
-      // Link to index.html with part parameter
-      const url = `${window.location.origin}/index.html?part=${encodeURIComponent(id)}`;
-
-      if (navigator.share) {
-        navigator.share({
-          title: 'Mein Tuning-Teil',
-          text: 'Schau dir dieses Teil bei TuningHub an!',
-          url: url,
-        }).catch(err => console.warn('Sharing failed:', err));
-      } else {
-        // Check if clipboard API is available
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url)
-            .then(() => alert("Link zum Teil wurde in die Zwischenablage kopiert!"))
-            .catch(err => {
-              console.error("Fehler beim Kopieren des Links:", err);
-              fallbackCopyToClipboard(url);
+        // Karte erstellen (gleich wie in index.html)
+        function createCard(teil) {
+            const { name, preis, beschreibung, bild } = extractData(teil);
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const imageUrl = bild || 'https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild';
+            const fallbackUrl = 'https://via.placeholder.com/300x200/f8f9fa/adb5bd?text=Bild+nicht+verfügbar';
+            
+            let preisText = preis;
+            if (typeof preis === 'number') {
+                preisText = `${preis.toLocaleString('de-DE')}€`;
+            } else if (typeof preis === 'string' && !isNaN(parseFloat(preis))) {
+                preisText = `${parseFloat(preis).toLocaleString('de-DE')}€`;
+            }
+            
+            card.innerHTML = `
+                <img src="${imageUrl}" 
+                     alt="${name}" 
+                     onerror="this.src='${fallbackUrl}'" 
+                     loading="lazy" />
+                <h2>${name}</h2>
+                ${beschreibung ? `<p>${beschreibung}</p>` : ''}
+                <p><strong>${preisText}</strong></p>
+                <div class="card-actions">
+                    <button class="delete-btn">Löschen</button>
+                </div>
+            `;
+            
+            // Click-Event für Detailansicht
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('.delete-btn')) {
+                    openDetailView(teil);
+                }
             });
-        } else {
-          // Fallback method for older browsers or non-HTTPS contexts
-          fallbackCopyToClipboard(url);
-        }
-      }
-    }
 
-    // Fallback function for copying to clipboard
-    function fallbackCopyToClipboard(text) {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-999999px";
-      textArea.style.top = "-999999px";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-          alert("Link zum Teil wurde in die Zwischenablage kopiert!");
-        } else {
-          showLinkDialog(text);
-        }
-      } catch (err) {
-        console.error('Fallback copy failed:', err);
-        showLinkDialog(text);
-      } finally {
-        document.body.removeChild(textArea);
-      }
-    }
-
-    // Show link in a dialog if all copy methods fail
-    function showLinkDialog(url) {
-      const message = `Link konnte nicht automatisch kopiert werden. Bitte kopiere den Link manuell:\n\n${url}`;
-      alert(message);
-    }
-
-    // Function to add to index.html to handle shared part links
-    function handleSharedPartLink() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const partId = urlParams.get('part');
-      
-      if (partId) {
-        console.log('Shared part ID detected:', partId);
-        
-        // Wait for the parts to load, then find and open the specific part
-        setTimeout(async () => {
-          try {
-            const { data: part, error } = await supabaseClient
-              .from('parts')
-              .select('*')
-              .eq('id', partId)
-              .single();
+            // Löschen-Button
+            const deleteBtn = card.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm('Möchten Sie dieses Teil wirklich löschen?')) {
+                    const { error } = await supabase
+                        .from('parts')
+                        .delete()
+                        .eq('id', teil.id);
+                    
+                    if (!error) {
+                        card.remove();
+                    } else {
+                        alert('Fehler beim Löschen des Teils');
+                    }
+                }
+            });
             
-            if (error) {
-              console.log('Error loading shared part:', error);
-              alert('Das geteilte Teil konnte nicht gefunden werden.');
-              return;
+            return card;
+        }
+
+        // Hilfsfunktion zum Extrahieren der Daten (gleich wie in index.html)
+        function extractData(teil) {
+            const name = teil.name || teil.title || teil.bezeichnung || teil.teil_name || 'Unbekanntes Teil';
+            const preis = teil.preis || teil.price || teil.kosten || teil.euro || 'Preis auf Anfrage';
+            const beschreibung = teil.beschreibung || teil.description || teil.details || '';
+            const bild = teil.bild_url || teil.image_url || teil.foto || teil.bild || null;
+            const kategorie = teil.kategorie || teil.category || teil.type || 'Tuning-Teil';
+            const zustand = teil.zustand || teil.condition || teil.state || 'Gebraucht';
+            const telefon = teil.contact_number || teil.phone || teil.telefon || '';
+            const verkäufer = teil.seller_name || teil.user_name || 'Privater Verkäufer';
+            const datum = teil.created_at || teil.date || new Date().toISOString();
+            const id = teil.id;
+            
+            return { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum, id };
+        }
+
+        // Detailansicht öffnen (gleich wie in index.html)
+        function openDetailView(teil) {
+            const modal = document.getElementById('detail-modal');
+            const { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer } = extractData(teil);
+            
+            document.getElementById('detail-title').textContent = name;
+            
+            const imageUrl = bild || 'https://via.placeholder.com/600x400/e9ecef/666?text=Kein+Bild';
+            const fallbackUrl = 'https://via.placeholder.com/600x400/f8f9fa/adb5bd?text=Bild+nicht+verfügbar';
+            const detailImage = document.getElementById('detail-image');
+            detailImage.src = imageUrl;
+            detailImage.alt = name;
+            detailImage.onerror = function() { this.src = fallbackUrl; };
+            
+            let preisText = preis;
+            if (typeof preis === 'number') {
+                preisText = `${preis.toLocaleString('de-DE')}€`;
+            } else if (typeof preis === 'string' && !isNaN(parseFloat(preis))) {
+                preisText = `${parseFloat(preis).toLocaleString('de-DE')}€`;
             }
+            document.getElementById('detail-price').textContent = preisText;
             
-            if (part) {
-              console.log('Opening shared part:', part);
-              openDetailView(part);
+            document.getElementById('detail-description').textContent = 
+                beschreibung || 'Keine detaillierte Beschreibung verfügbar.';
+            
+            document.getElementById('detail-category').textContent = kategorie;
+            document.getElementById('detail-condition').textContent = zustand;
+            document.getElementById('detail-seller').textContent = verkäufer;
+            document.getElementById('detail-phone').textContent = telefon || 'Nicht verfügbar';
+            
+            const contactBtn = document.getElementById('contact-seller-btn');
+            contactBtn.onclick = function() {
+                contactSeller(telefon);
+            };
+            
+            if (!telefon) {
+                contactBtn.disabled = true;
+                contactBtn.textContent = 'Keine Kontaktdaten verfügbar';
             } else {
-              alert('Das geteilte Teil existiert nicht mehr.');
+                contactBtn.disabled = false;
+                contactBtn.textContent = 'Verkäufer kontaktieren';
             }
-          } catch (error) {
-            console.log('Error handling shared part:', error);
-            alert('Fehler beim Laden des geteilten Teils.');
-          }
-        }, 1000); // Wait 1 second for other initialization to complete
-      }
-    }
+            
+            const shareBtn = document.getElementById('share-btn');
+            shareBtn.onclick = function() {
+                sharePart(teil.id);
+            };
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
 
-    // Initialisierung beim Laden der Seite
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM loaded, initializing...');
-      loadParts();
-    });
+        // Detailansicht schließen
+        function closeDetailView() {
+            const modal = document.getElementById('detail-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
 
-    // Fallback für ältere Browser
-    window.addEventListener('load', function() {
-      console.log('Window loaded, checking if parts are loaded...');
-      const container = document.getElementById("partsList");
-      if (container && container.innerHTML === 'Lade...') {
-        console.log('Parts not loaded yet, trying again...');
-        loadParts();
-      }
-    });
-  </script>
+        // Verkäufer kontaktieren (gleich wie in index.html)
+        function contactSeller(telefon) {
+            if (!telefon) {
+                alert('Keine Telefonnummer verfügbar');
+                return;
+            }
+            
+            const cleanedPhone = telefon.replace(/[^\d+]/g, '');
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'contact-dialog-overlay';
+            dialog.innerHTML = `
+                <div class="contact-dialog-content">
+                    <h3>Kontaktoptionen</h3>
+                    <p class="contact-phone">${telefon}</p>
+                    <div class="contact-options">
+                        <button class="contact-option call">
+                            <span class="icon">📞</span>
+                            <span>Anrufen</span>
+                        </button>
+                        <button class="contact-option whatsapp">
+                            <span class="icon">💬</span>
+                            <span>WhatsApp</span>
+                        </button>
+                        <button class="contact-option sms">
+                            <span class="icon">📱</span>
+                            <span>SMS</span>
+                        </button>
+                    </div>
+                    <button class="contact-cancel">Abbrechen</button>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            dialog.querySelector('.call').addEventListener('click', () => {
+                window.location.href = `tel:${cleanedPhone}`;
+                dialog.remove();
+            });
+            
+            dialog.querySelector('.whatsapp').addEventListener('click', () => {
+                window.open(`https://wa.me/${cleanedPhone.replace(/[^\d]/g, '')}`, '_blank');
+                dialog.remove();
+            });
+            
+            dialog.querySelector('.sms').addEventListener('click', () => {
+                window.location.href = `sms:${cleanedPhone}`;
+                dialog.remove();
+            });
+            
+            dialog.querySelector('.contact-cancel').addEventListener('click', () => {
+                dialog.remove();
+            });
+            
+            dialog.addEventListener('click', (e) => {
+                if (e.target === dialog) {
+                    dialog.remove();
+                }
+            });
+        }
+
+        // Teil teilen Funktion (gleich wie in index.html)
+        function sharePart(id) {
+            const url = `${window.location.origin}/index.html?part=${encodeURIComponent(id)}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Mein Tuning-Teil',
+                    text: 'Schau dir dieses Teil bei TuningHub an!',
+                    url: url,
+                }).catch(err => console.warn('Sharing failed:', err));
+            } else {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url)
+                        .then(() => alert("Link zum Teil wurde in die Zwischenablage kopiert!"))
+                        .catch(err => {
+                            console.error("Fehler beim Kopieren des Links:", err);
+                            fallbackCopyToClipboard(url);
+                        });
+                } else {
+                    fallbackCopyToClipboard(url);
+                }
+            }
+        }
+
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event-Listener für Detailansicht
+            document.getElementById('close-detail').addEventListener('click', closeDetailView);
+            document.getElementById('detail-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDetailView();
+                }
+            });
+            
+            // Teile laden
+            ladeAngebote();
+            
+            // Account-Link setzen
+            const accountLink = document.getElementById('account-link');
+            if (accountLink) {
+                accountLink.href = 'account.html';
+            }
+        });
+    </script>
 </body>
 </html>

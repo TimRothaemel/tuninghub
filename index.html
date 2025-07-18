@@ -152,53 +152,182 @@
             return { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum, id };
         }
 
-        // Verkäufer kontaktieren
-        function contactSeller(telefon) {
-            if (!telefon) {
-                alert('Keine Telefonnummer verfügbar');
-                return;
-            }
-            
-            // Telefonnummer bereinigen (nur Zahlen und +)
-            const cleanedPhone = telefon.replace(/[^\d+]/g, '');
-            
-            // Verschiedene Optionen anbieten
-            const options = [
-                `📞 Anrufen: ${telefon}`,
-                `💬 WhatsApp: ${telefon}`,
-                `📱 SMS: ${telefon}`,
-                '❌ Abbrechen'
-            ];
-            
-            const choice = prompt(
-                `Wie möchtest du den Verkäufer kontaktieren?\n\n` +
-                `1 - ${options[0]}\n` +
-                `2 - ${options[1]}\n` +
-                `3 - ${options[2]}\n` +
-                `4 - ${options[3]}\n\n` +
-                `Telefonnummer: ${telefon}\n\n` +
-                `Gib die Nummer 1-4 ein:`,
-                '1'
-            );
-            
-            switch(choice) {
-                case '1':
-                    window.location.href = `tel:${cleanedPhone}`;
-                    break;
-                case '2':
-                    window.open(`https://wa.me/${cleanedPhone.replace(/[^\d]/g, '')}`, '_blank');
-                    break;
-                case '3':
-                    window.location.href = `sms:${cleanedPhone}`;
-                    break;
-                case '4':
-                case null:
-                    // Abbrechen
-                    break;
-                default:
-                    alert('Ungültige Auswahl');
-            }
+
+    // Verkäufer kontaktieren mit modalen Buttons im bestehenden Design
+    function contactSeller(telefon) {
+        if (!telefon) {
+            alert('Keine Telefonnummer verfügbar');
+            return;
         }
+        
+        // Telefonnummer bereinigen (nur Zahlen und +)
+        const cleanedPhone = telefon.replace(/[^\d+]/g, '');
+        
+        // Dialog erstellen
+        const dialog = document.createElement('div');
+        dialog.className = 'contact-dialog-overlay';
+        dialog.innerHTML = `
+            <div class="contact-dialog-content">
+                <h3>Kontaktoptionen</h3>
+                <p class="contact-phone">${telefon}</p>
+                <div class="contact-options">
+                    <button class="contact-option call">
+                        <span class="icon">📞</span>
+                        <span>Anrufen</span>
+                    </button>
+                    <button class="contact-option whatsapp">
+                        <span class="icon">💬</span>
+                        <span>WhatsApp</span>
+                    </button>
+                    <button class="contact-option sms">
+                        <span class="icon">📱</span>
+                        <span>SMS</span>
+                    </button>
+                </div>
+                <button class="contact-cancel">Abbrechen</button>
+            </div>
+        `;
+        
+        // Styling hinzufügen
+        const style = document.createElement('style');
+        style.textContent = `
+            .contact-dialog-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 2000;
+                animation: fadeIn 0.3s ease-out;
+            }
+            
+            .contact-dialog-content {
+                background: white;
+                padding: 24px;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+                text-align: center;
+            }
+            
+            .contact-dialog-content h3 {
+                font-size: 1.2rem;
+                color: #333;
+                margin-bottom: 8px;
+            }
+            
+            .contact-phone {
+                color: #666;
+                font-size: 1rem;
+                margin-bottom: 20px;
+                padding: 8px;
+                background: #f8f9fa;
+                border-radius: 8px;
+            }
+            
+            .contact-options {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .contact-option {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                background: #f8f9fa;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .contact-option:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            .contact-option .icon {
+                font-size: 24px;
+                margin-bottom: 6px;
+            }
+            
+            .contact-option span {
+                font-size: 0.9rem;
+            }
+            
+            .call { color: #28a745; }
+            .whatsapp { color: #25D366; }
+            .sms { color: #17a2b8; }
+            
+            .contact-cancel {
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                background: #f0f0f0;
+                color: #666;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .contact-cancel:hover {
+                background: #e0e0e0;
+            }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(dialog);
+        
+        // Button Events
+        dialog.querySelector('.call').addEventListener('click', () => {
+            window.location.href = `tel:${cleanedPhone}`;
+            removeDialog();
+        });
+        
+        dialog.querySelector('.whatsapp').addEventListener('click', () => {
+            window.open(`https://wa.me/${cleanedPhone.replace(/[^\d]/g, '')}`, '_blank');
+            removeDialog();
+        });
+        
+        dialog.querySelector('.sms').addEventListener('click', () => {
+            window.location.href = `sms:${cleanedPhone}`;
+            removeDialog();
+        });
+        
+        dialog.querySelector('.contact-cancel').addEventListener('click', removeDialog);
+        
+        // Klicken außerhalb des Dialogs schließt ihn
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                removeDialog();
+            }
+        });
+        
+        // ESC-Taste schließt den Dialog
+        document.addEventListener('keydown', function escHandler(e) {
+            if (e.key === 'Escape') {
+                removeDialog();
+                document.removeEventListener('keydown', escHandler);
+            }
+        });
+        
+        function removeDialog() {
+            dialog.remove();
+            style.remove();
+        }
+    }
+
+
 
         // Teil teilen Funktion
         function sharePart(id) {

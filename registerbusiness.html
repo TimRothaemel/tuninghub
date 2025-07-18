@@ -30,7 +30,13 @@
   <main>
     <div class="form-wrapper">
   <section style="max-width: 500px; margin: auto; padding: 2rem;">
-    <h2 class="main-überschrift" >Business Account erstellen</h2>
+    <h2 class="main-überschrift">Business Account erstellen</h2>
+
+    <label for="fullName">Vollständiger Name</label>
+    <input type="text" id="fullName" placeholder="Max Mustermann" required>
+
+    <label for="phone">Telefonnummer</label>
+    <input type="tel" id="phone" placeholder="+49 123 456789" required>
 
     <label for="email">E-Mail-Adresse</label>
     <input type="email" id="email" placeholder="name@firma.de" required>
@@ -39,7 +45,7 @@
     <input type="password" id="password" placeholder="Mind. 6 Zeichen" required>
 
     <label for="companyName">Firmenname</label>
-    <input type="text" id="companyName" placeholder="z. B. MopedParts24" required>
+    <input type="text" id="companyName" placeholder="z. B. MopedParts24" required>
 
     <label for="contactLink">Kontakt (Instagram, Website o.ä.)</label>
     <input type="url" id="contactLink" placeholder="https://instagram.com/deinfirma" required>
@@ -61,7 +67,157 @@
         <div class="informations"> <a href="socialmedia.html"> Social Media</a></div>
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- 
+  
+  <script>
+    // Initialize Supabase client
+    const { createClient } = supabase;
+const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    async function registerBusiness() {
+        // Get form values
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const fullName = document.getElementById('fullName').value;
+        const phone = document.getElementById('phone').value;
+        const companyName = document.getElementById('companyName').value;
+        const contactLink = document.getElementById('contactLink').value;
+        const companyDescription = document.getElementById('companyDescription').value;
+
+        // Basic validation
+        if (!email || !password || !fullName || !phone || !companyName || !contactLink || !companyDescription) {
+            alert('Bitte füllen Sie alle Felder aus.');
+            return;
+        }
+
+        if (password.length < 6) {
+            alert('Das Passwort muss mindestens 6 Zeichen lang sein.');
+            return;
+        }
+
+        // Phone validation (basic German format)
+        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{8,}$/;
+        if (!phoneRegex.test(phone)) {
+            alert('Bitte geben Sie eine gültige Telefonnummer ein.');
+            return;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
+            return;
+        }
+
+        // URL validation
+        try {
+            new URL(contactLink);
+        } catch {
+            alert('Bitte geben Sie eine gültige URL ein.');
+            return;
+        }
+
+        try {
+            // Register user with Supabase Auth - all data stored in metadata
+            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        user_type: 'business',
+                        full_name: fullName,
+                        phone: phone,
+                        company_name: companyName,
+                        contact_link: contactLink,
+                        company_description: companyDescription,
+                        created_at: new Date().toISOString()
+                    }
+                }
+            });
+
+            if (authError) {
+                throw authError;
+            }
+
+            // Business data is stored in user metadata - no separate table needed
+            console.log('Business account created successfully:', authData.user);
+
+            alert('Business Account erfolgreich erstellt! Bitte überprüfen Sie Ihre E-Mail zur Bestätigung.');
+            
+            // Clear form
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('fullName').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('companyName').value = '';
+            document.getElementById('contactLink').value = '';
+            document.getElementById('companyDescription').value = '';
+            
+            // Redirect to login page or dashboard
+            // window.location.href = 'login.html';
+
+        } catch (error) {
+            console.error('Registration error:', error);
+            alert('Fehler bei der Registrierung: ' + error.message);
+        }
+    }
+
+    // Form validation on input
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const fullNameInput = document.getElementById('fullName');
+        const phoneInput = document.getElementById('phone');
+        const contactLinkInput = document.getElementById('contactLink');
+
+        emailInput.addEventListener('blur', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(this.value)) {
+                this.style.borderColor = 'red';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+
+        passwordInput.addEventListener('input', function() {
+            if (this.value.length < 6) {
+                this.style.borderColor = 'red';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+
+        fullNameInput.addEventListener('blur', function() {
+            if (this.value.trim().length < 2) {
+                this.style.borderColor = 'red';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+
+        phoneInput.addEventListener('blur', function() {
+            const phoneRegex = /^[\+]?[0-9\s\-\(\)]{8,}$/;
+            if (!phoneRegex.test(this.value)) {
+                this.style.borderColor = 'red';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+
+        contactLinkInput.addEventListener('blur', function() {
+            if (this.value) {
+                try {
+                    new URL(this.value);
+                    this.style.borderColor = '';
+                } catch {
+                    this.style.borderColor = 'red';
+                }
+            }
+        });
+    });
+  </script>
 </body>
 </html>
