@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="de">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -129,8 +132,41 @@
     userInfo.innerHTML = `
       <strong>Eingeloggt als:</strong> ${user.email}<br>
       <small>Benutzername: ${user.user_metadata?.username || 'Nicht gesetzt'}</small><br>
+      <small>Telefonnummer: ${formatPhoneForDisplay(user.user_metadata?.phone) || 'Nicht gesetzt'}</small><br>
       <small>Letzte Anmeldung: ${new Date(user.last_sign_in_at).toLocaleString('de-DE')}</small>
     `;
+  }
+
+  // Telefonnummer für die Anzeige formatieren
+  function formatPhoneForDisplay(phone) {
+    if (!phone) return null;
+    // Entferne +49 und ersetze durch 0 für die Anzeige
+    if (phone.startsWith('+49')) {
+      return '0' + phone.substring(3);
+    }
+    return phone;
+  }
+
+  // Telefonnummer für die Speicherung formatieren
+  function formatPhoneForStorage(phone) {
+    if (!phone) return null;
+    // Entferne alle Leerzeichen und Sonderzeichen
+    phone = phone.replace(/\s+/g, '').replace(/[-\/]/g, '');
+    
+    // Wenn Nummer mit 01 beginnt, ersetze die 0 durch +49
+    if (phone.startsWith('01')) {
+      phone = '+49' + phone.substring(1);
+    }
+    // Falls Nummer mit 49 beginnt, füge + hinzu
+    else if (phone.startsWith('49')) {
+      phone = '+' + phone;
+    }
+    // Falls Nummer mit 0049 beginnt, ersetze durch +49
+    else if (phone.startsWith('0049')) {
+      phone = '+' + phone.substring(2);
+    }
+    
+    return phone;
   }
 
   // 1. Initialisierung
@@ -195,7 +231,7 @@
       // Metadaten setzen
       const metadata = user.user_metadata || {};
       document.getElementById("newUsername").placeholder = metadata.username || "Kein Benutzername";
-      document.getElementById("newPhone").placeholder = metadata.phone || "Keine Telefonnummer";
+      document.getElementById("newPhone").placeholder = formatPhoneForDisplay(metadata.phone) || "Keine Telefonnummer";
       
     } catch (error) {
       console.error("Unerwarteter Fehler:", error);
@@ -264,13 +300,23 @@
   }
 
   async function updatePhone() {
-    const phone = document.getElementById("newPhone").value.trim();
+    let phone = document.getElementById("newPhone").value.trim();
     if (!phone) {
       alert("Telefonnummer eingeben!");
       return;
     }
 
     try {
+      // Formatierung der Telefonnummer
+      phone = formatPhoneForStorage(phone);
+      
+      // Validierung
+      const phoneRegex = /^\+[0-9]{8,}$/;
+      if (!phoneRegex.test(phone)) {
+        alert("Bitte geben Sie eine gültige Telefonnummer ein (z.B. 01721234567 oder +491721234567)");
+        return;
+      }
+
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
 
@@ -348,5 +394,4 @@
   }
 </script>
 </body>
-
 </html>

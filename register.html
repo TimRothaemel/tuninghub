@@ -66,7 +66,7 @@
     e.preventDefault();
 
     const username = document.getElementById('username').value.trim();
-    const phone = document.getElementById('phone').value.trim();
+    let phone = document.getElementById('phone').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
@@ -75,6 +75,22 @@
       errorText.style.color = 'red';
       errorText.textContent = 'Bitte füllen Sie alle Felder aus.';
       return;
+    }
+
+    // Telefonnummer formatieren für WhatsApp
+    // Entferne alle Leerzeichen und Sonderzeichen zuerst
+    phone = phone.replace(/\s+/g, '').replace(/[-\/]/g, '');
+    
+    // Wenn Nummer mit 01 beginnt, ersetze die 0 durch +49
+    if (phone.startsWith('01')) {
+      phone = '+49' + phone.substring(1);
+    }
+    // Falls Nummer mit +49 oder 49 beginnt, belasse sie oder korrigiere
+    else if (phone.startsWith('49')) {
+      phone = '+' + phone;
+    }
+    else if (phone.startsWith('0049')) {
+      phone = '+' + phone.substring(2);
     }
 
     errorText.style.color = 'black';
