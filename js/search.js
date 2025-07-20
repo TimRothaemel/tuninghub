@@ -5,29 +5,17 @@ function log(message, data = null) {
     console.log(`[TuningHub Search] ${message}`, data || '');
 }
 
-
-
-// Suchverhaltens-Speicher
-const SEARCH_HISTORY_KEY = 'tuninghub_search_history';
+// Suchverlauf-Speicher (In-Memory statt localStorage)
+let searchHistory = [];
 const MAX_HISTORY_ITEMS = 5;
 
-// Suchverlauf laden/speichern
+// Suchverlauf-Funktionen (vereinfacht für In-Memory)
 function loadSearchHistory() {
-    try {
-        const history = localStorage.getItem(SEARCH_HISTORY_KEY);
-        return history ? JSON.parse(history) : [];
-    } catch (error) {
-        log('Fehler beim Laden des Suchverlaufs', error);
-        return [];
-    }
+    return searchHistory;
 }
 
 function saveSearchHistory(history) {
-    try {
-        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-    } catch (error) {
-        log('Fehler beim Speichern des Suchverlaufs', error);
-    }
+    searchHistory = history;
 }
 
 function addToSearchHistory(query) {
@@ -48,7 +36,7 @@ function createSearchUI() {
     // Suchbutton erstellen
     const searchButton = document.createElement('button');
     searchButton.className = 'search-button';
-    searchButton.innerHTML = '<svg xmlns="\img\search_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>';
+    searchButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>';
     
     // Suchleiste referenzieren
     const searchInput = searchWrapper.querySelector('.searchbar');
@@ -69,10 +57,116 @@ function createSearchUI() {
     searchButton.addEventListener('click', () => performSearch(searchInput.value));
 }
 
+// Tracking-Funktion für Suchanfragen (verbessert)
+async function trackSearchEvent(query) {
+    log(`Tracking Search Event: "${query}"`);
+    
+    try {
+        // Prüfen ob supabase verfügbar ist
+        if (typeof supabase === 'undefined') {
+            log('Supabase ist nicht verfügbar');
+            return;
+        }
+
+        // User abrufen (mit besserer Fehlerbehandlung)
+        let userId = null;
+        try {
+            if (supabase.auth && supabase.auth.getUser) {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error) {
+                    log('Fehler beim Abrufen des Users:', error);
+                } else {
+                    userId = user?.id || null;
+                }
+            }
+        } catch (authError) {
+            log('Auth-Fehler:', authError);
+            // Weiter ohne User-ID
+        }
+
+        log(`Tracking mit User-ID: ${userId}`);
+
+        // Tracking-Event senden
+        const trackingData = {
+            event_type: 'search',
+            user_id: userId,
+            metadata: {
+                query: query || '',
+                timestamp: new Date().toISOString(),
+                url: window.location.href,
+                userAgent: navigator.userAgent
+            }
+        };
+
+        log('Sende Tracking-Daten:', trackingData);
+
+        // Methode 1: Über Supabase Client (empfohlen)
+        if (supabase.from) {
+            try {
+                const { data, error } = await supabase
+                    .from('tracking_events')
+                    .insert([trackingData]);
+
+                if (error) {
+                    log('Supabase Insert Fehler:', error);
+                    throw error;
+                } else {
+                    log('Such-Tracking erfolgreich über Supabase Client', data);
+                    return;
+                }
+            } catch (supabaseError) {
+                log('Supabase Client Fehler, verwende Fetch:', supabaseError);
+            }
+        }
+
+        // Methode 2: Direkte Fetch-Anfrage (Fallback)
+        const response = await fetch('https://lhxcnrogjjskgaclqxtm.supabase.co/rest/v1/tracking_events', {
+            method: 'POST',
+            headers: {
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww',
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(trackingData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            log('HTTP Fehler:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        log('Such-Tracking erfolgreich über Fetch');
+
+    } catch (error) {
+        log('Fehler beim Such-Tracking:', error);
+        // Optional: Fallback-Tracking (z.B. in lokalen Storage)
+        try {
+            const fallbackData = {
+                query,
+                timestamp: new Date().toISOString(),
+                error: error.message
+            };
+            console.log('Fallback Tracking:', fallbackData);
+        } catch (fallbackError) {
+            log('Auch Fallback-Tracking fehlgeschlagen:', fallbackError);
+        }
+    }
+}
+
 // Suche durchführen
 async function performSearch(query) {
     query = query?.trim() || '';
     log(`Suche nach: "${query}"`);
+    
+    // Tracking VOR der Suche aufrufen
+    await trackSearchEvent(query);
+    
     addToSearchHistory(query);
 
     const container = document.getElementById('angebot-container');
@@ -81,6 +175,10 @@ async function performSearch(query) {
     container.innerHTML = '<div class="loading">🔍 Suche läuft...</div>';
 
     try {
+        if (typeof supabase === 'undefined') {
+            throw new Error('Supabase ist nicht verfügbar');
+        }
+
         const { data, error } = await supabase
             .from('parts')
             .select('*')
@@ -168,6 +266,13 @@ function createResultCard(teil, query) {
     return card;
 }
 
+// Debug-Funktion zum Testen des Trackings
+window.testTracking = async function(testQuery = 'test-suche') {
+    log('Starte Tracking-Test...');
+    await trackSearchEvent(testQuery);
+    log('Tracking-Test abgeschlossen');
+};
+
 // Initialisierung
 document.addEventListener('DOMContentLoaded', function() {
     log('Search.js initialisiert');
@@ -190,6 +295,9 @@ document.addEventListener('DOMContentLoaded', function() {
             performSearch(searchInput.value);
         });
     }
+
+    // Debug: Tracking-Test nach 2 Sekunden (optional)
+    // setTimeout(() => window.testTracking?.(), 2000);
 });
 
 // CSS für Suchkomponenten
@@ -256,4 +364,3 @@ style.textContent = `
         background: #0069d9;
     }
 `;
-document.head.appendChild(style);

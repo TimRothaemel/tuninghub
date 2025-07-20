@@ -7,12 +7,11 @@
     <title>TuningHub Login</title>
     <link rel="stylesheet" href="css/index.css" />
     <link rel="stylesheet" href="css/login.css" />
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
-
-<header class="header">
+    <header class="header">
         <div class="header-top">
             <div class="logo">
                 <a href="index.html">
@@ -34,48 +33,156 @@
     <main>
         <h2 class="main-überschrift">Login</h2>
         <div class="form-wrapper">
-            <form onsubmit="event.preventDefault(); login();">
+            <form id="login-form">
                 <input class="inputfield" id="email" type="email" placeholder="E-Mail" required> <br>
                 <input class="inputfield" id="password" type="password" placeholder="Passwort" required> <br>
                 <button type="submit">Einloggen</button>
                 <a class="back-link" href="register.html">Registrieren</a> 
-                
+                <p id="error-message"></p>
             </form>
         </div>
     </main>
- <footer>
+    <footer>
         <div class="informations"><a href="übertuninghub.html">TuningHub</a> </div>
         <div class="informations"><a href="impressum.html">Impressum</a></div>
         <div class="informations"> <a href="support.html"> Support</a></div>
         <div class="informations"> <a href="socialmedia.html"> Social Media</a></div>
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-        <script src="js/search.js"></script>
+    <script src="js/search.js"></script>
     <script>
+        // Supabase Konfiguration für beide Projekte
+        const trackingUrl = 'https://lhxcnrogjjskgaclqxtm.supabase.co';
+        const trackingKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww';
+
         const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        async function login() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+        // Clients erstellen
+        const trackingClient = supabase.createClient(trackingUrl, trackingKey);
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
 
+        // Tracking-Funktion
+        async function trackEvent(eventType, metadata = {}) {
+            try {
+                const { data, error } = await trackingClient
+                    .from('tracking_events')
+                    .insert({
+                        event_type: eventType,
+                        metadata: metadata
+                    });
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-
-            if (error) {
-                alert("Login fehlgeschlagen: " + error.message);
-            } else {
-                alert("Login erfolgreich!");
-                window.location.href = "account.html";
+                if (error) {
+                    console.error('[Tracking] Supabase error:', error);
+                } else {
+                    console.log('[Tracking] Event successfully tracked:', eventType);
+                }
+            } catch (err) {
+                console.error('[Tracking] Unexpected error:', err);
             }
         }
+
+        // DOM Elements
+        const form = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+
+        // Form submission handler
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Validierung
+            if (!email || !password) {
+                errorMessage.style.color = 'red';
+                errorMessage.textContent = 'Bitte füllen Sie alle Felder aus.';
+                
+                // Track validation error
+                await trackEvent('login_validation_error', {
+                    error: 'missing_fields'
+                });
+                return;
+            }
+
+            errorMessage.style.color = 'black';
+            errorMessage.textContent = 'Login wird durchgeführt...';
+
+            try {
+                // Track login attempt
+                await trackEvent('login_attempt', {
+                    email: email
+                });
+
+                const { data, error } = await client.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) {
+                    throw error;
+                }
+
+                // Track successful login
+                await trackEvent('login_success', {
+                    email: email,
+                    user_id: data.user?.id
+                });
+
+                errorMessage.style.color = 'green';
+                errorMessage.textContent = 'Login erfolgreich! Weiterleitung...';
+
+                // Weiterleitung nach Erfolg
+                setTimeout(() => {
+                    window.location.href = 'account.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Login-Fehler:', error);
+                
+                // Track login error
+                await trackEvent('login_error', {
+                    email: email,
+                    error_message: error.message,
+                    error_code: error.status || 'unknown'
+                });
+
+                errorMessage.style.color = 'red';
+                errorMessage.textContent = 'Fehler: ' + error.message;
+            }
+        });
+
+        // Input validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('error-message');
+
+            function validateInputs() {
+                errorMessage.textContent = '';
+                
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailInput.value && !emailRegex.test(emailInput.value)) {
+                    emailInput.style.borderColor = 'red';
+                } else {
+                    emailInput.style.borderColor = '';
+                }
+
+                // Password validation
+                if (passwordInput.value && passwordInput.value.length < 6) {
+                    passwordInput.style.borderColor = 'red';
+                } else {
+                    passwordInput.style.borderColor = '';
+                }
+            }
+
+            // Add event listeners
+            emailInput.addEventListener('input', validateInputs);
+            passwordInput.addEventListener('input', validateInputs);
+            emailInput.addEventListener('blur', validateInputs);
+            passwordInput.addEventListener('blur', validateInputs);
+        });
     </script>
-
 </body>
-
 </html>

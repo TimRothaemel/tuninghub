@@ -109,12 +109,38 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="js/search.js"></script>
+    <script src="js/search.js"></script>
 <script>
   // Globale Variablen
   let supabase;
   let currentUser = null;
   let isInitialized = false;
+  let trackingClient;
+
+  // Tracking-Konfiguration
+  const trackingUrl = 'https://lhxcnrogjjskgaclqxtm.supabase.co';
+  const trackingKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww';
+
+  // Tracking-Funktion
+  async function trackEvent(eventType, metadata = {}) {
+    try {
+      const { data, error } = await trackingClient
+        .from('tracking_events')
+        .insert({
+          event_type: eventType,
+          metadata: metadata,
+          user_id: currentUser?.id || 'unknown'
+        });
+
+      if (error) {
+        console.error('[Tracking] Supabase error:', error);
+      } else {
+        console.log('[Tracking] Event successfully tracked:', eventType);
+      }
+    } catch (err) {
+      console.error('[Tracking] Unexpected error:', err);
+    }
+  }
 
   // Utility functions
   function showError(message) {
@@ -175,6 +201,7 @@
       const supabaseUrl = 'https://yvdptnkmgfxkrszitweo.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo';
       
+      // Erstelle Clients
       supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
         auth: {
           persistSession: true,
@@ -182,6 +209,8 @@
           detectSessionInUrl: true
         }
       });
+      
+      trackingClient = window.supabase.createClient(trackingUrl, trackingKey);
 
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) throw error;
@@ -227,6 +256,7 @@
 
       currentUser = user;
       showUserInfo(user);
+     
       
       // Metadaten setzen
       const metadata = user.user_metadata || {};
@@ -250,6 +280,12 @@
     try {
       const { error } = await supabase.auth.updateUser({ email });
       if (error) throw error;
+      
+      // Tracke E-Mail-Änderung
+      await trackEvent('email_update_attempt', {
+        new_email: email
+      });
+      
       alert("Bestätigungsmail gesendet!");
       document.getElementById("newEmail").value = "";
       await loadUser();
@@ -268,6 +304,10 @@
     try {
       const { error } = await supabase.auth.updateUser({ password: pw });
       if (error) throw error;
+      
+      // Tracke Passwortänderung
+      await trackEvent('password_update');
+      
       alert("Passwort geändert!");
       document.getElementById("newPassword").value = "";
     } catch (error) {
@@ -290,6 +330,11 @@
         data: { ...(user.user_metadata || {}), username }
       });
       if (error) throw error;
+      
+      // Tracke Benutzername-Änderung
+      await trackEvent('username_update', {
+        new_username: username
+      });
       
       alert("Benutzername aktualisiert!");
       document.getElementById("newUsername").value = "";
@@ -325,6 +370,9 @@
       });
       if (error) throw error;
       
+      // Tracke Telefonnummer-Änderung
+      await trackEvent('phone_update');
+      
       alert("Telefonnummer aktualisiert!");
       document.getElementById("newPhone").value = "";
       await loadUser();
@@ -335,28 +383,62 @@
 
   async function logout() {
     try {
+      // Tracke bevor der Logout durchgeführt wird
+      await trackEvent('logout_attempt');
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Tracke erfolgreichen Logout
+      await trackEvent('logout_success');
+      
       window.location.href = "login.html";
     } catch (error) {
+      // Tracke fehlgeschlagenen Logout
+      await trackEvent('logout_error', {
+        error_message: error.message
+      });
+      
       alert(`Abmeldefehler: ${error.message}`);
     }
   }
 
   async function deleteAccount() {
-    if (!confirm("ACCOUNT WIRKLICH LÖSCHEN? ALLE DATEN GEHEN VERLOREN!")) return;
+    if (!confirm("ACCOUNT WIRKLICH LÖSCHEN? ALLE DATEN GEHEN VERLOREN!")) {
+      // Tracke abgebrochene Löschung
+      await trackEvent('account_deletion_cancelled');
+      return;
+    }
 
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
 
+      // Tracke bevor der Account gelöscht wird
+      await trackEvent('account_deletion_attempt', {
+        user_id: user.id,
+        email: user.email
+      });
+
       const { error } = await supabase.rpc("delete_user", { user_id: user.id });
       if (error) throw error;
+
+      // Tracke erfolgreiche Löschung
+      await trackEvent('account_deletion_success', {
+        user_id: user.id,
+        email: user.email
+      });
 
       await supabase.auth.signOut();
       alert("Account gelöscht!");
       window.location.href = "index.html";
     } catch (error) {
+      // Tracke fehlgeschlagene Löschung
+      await trackEvent('account_deletion_error', {
+        error_message: error.message,
+        error_code: error.status || 'unknown'
+      });
+      
       alert(`Löschfehler: ${error.message}`);
     }
   }

@@ -74,10 +74,9 @@
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
 
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Supabase initialisieren
+    // Haupt-Supabase für Teile, Benutzer, etc.
     const supabase = window.supabase.createClient(
       'https://yvdptnkmgfxkrszitweo.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo',
@@ -87,6 +86,18 @@
           persistSession: true,
           detectSessionInUrl: true,
         },
+      }
+    );
+
+    // Separate Supabase-Instanz für Tracking (CORRECTED)
+    const trackingSupabase = window.supabase.createClient(
+      'https://lhxcnrogjjskgaclqxtm.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
       }
     );
 
@@ -170,7 +181,33 @@
       document.getElementById("partImage").value = "";
     }
 
-    // Teil hinzufügen
+    // Tracking-Event Funktion (CORRECTED - ohne created_at)
+    async function trackEvent(eventType, metadata = {}) {
+      try {
+        const user = await getCurrentUser();
+        
+        const { data, error } = await trackingSupabase
+          .from('tracking_events')
+          .insert([
+            {
+              event_type: eventType,
+              user_id: user ? user.id : null,
+              metadata: metadata
+              // Kein created_at - Supabase handled das automatisch
+            }
+          ]);
+        
+        if (error) {
+          console.error('[Tracking] Fehler beim Speichern:', error.message, error);
+        } else {
+          console.log(`[Tracking] Event "${eventType}" erfolgreich gespeichert.`, data);
+        }
+      } catch (err) {
+        console.error('[Tracking] Unerwarteter Fehler:', err);
+      }
+    }
+
+    // Teil hinzufügen - Komplette Funktion
     async function addPart() {
       const button = document.getElementById('addPartBtn');
       
@@ -253,6 +290,19 @@
         showSuccess("Teil erfolgreich hinzugefügt!");
         resetForm();
 
+        // Tracking-Event in separate Supabase-Instanz speichern
+        await trackEvent('teil_hinzugefügt', {
+          title: title,
+          price: price,
+          condition: condition,
+          image_url: imageUrl
+        });
+
+        // Nach erfolgreicher Speicherung zur Startseite weiterleiten
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000); // 2 Sekunden warten, damit der Benutzer die Erfolgsmeldung sehen kann
+
       } catch (error) {
         console.error('Unerwarteter Fehler:', error);
         showError("Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.");
@@ -265,6 +315,7 @@
 
     // Beim Laden der Seite Telefonnummer laden
     window.addEventListener("DOMContentLoaded", loadPhoneNumber);
+
   </script>
 </body>
 </html>
