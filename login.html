@@ -82,72 +82,62 @@
         // DOM Elements
         const form = document.getElementById('login-form');
         const errorMessage = document.getElementById('error-message');
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        // Form submission handler
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
 
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+    if (!email || !password) {
+        errorMessage.style.color = 'red';
+        errorMessage.textContent = 'Bitte fülle alle Felder aus.';
+        await trackEvent('login_validation_error', { error: 'missing_fields' });
+        return;
+    }
 
-            // Validierung
-            if (!email || !password) {
-                errorMessage.style.color = 'red';
-                errorMessage.textContent = 'Bitte füllen Sie alle Felder aus.';
-                
-                // Track validation error
-                await trackEvent('login_validation_error', {
-                    error: 'missing_fields'
-                });
-                return;
-            }
+    errorMessage.style.color = 'black';
+    errorMessage.textContent = 'Login wird durchgeführt...';
 
-            errorMessage.style.color = 'black';
-            errorMessage.textContent = 'Login wird durchgeführt...';
+    try {
+        await trackEvent('login_attempt', { email });
 
-            try {
-                // Track login attempt
-                await trackEvent('login_attempt', {
-                    email: email
-                });
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
 
-                const { data, error } = await client.auth.signInWithPassword({
-                    email,
-                    password
-                });
+        if (error) throw error;
 
-                if (error) {
-                    throw error;
-                }
-
-                // Track successful login
-                await trackEvent('login_success', {
-                    email: email,
-                    user_id: data.user?.id
-                });
-
-                errorMessage.style.color = 'green';
-                errorMessage.textContent = 'Login erfolgreich! Weiterleitung...';
-
-                // Weiterleitung nach Erfolg
-                setTimeout(() => {
-                    window.location.href = 'account.html';
-                }, 1500);
-
-            } catch (error) {
-                console.error('Login-Fehler:', error);
-                
-                // Track login error
-                await trackEvent('login_error', {
-                    email: email,
-                    error_message: error.message,
-                    error_code: error.status || 'unknown'
-                });
-
-                errorMessage.style.color = 'red';
-                errorMessage.textContent = 'Fehler: ' + error.message;
-            }
+        await trackEvent('login_success', {
+            email: email,
+            user_id: data.user?.id
         });
+
+        const userConfirmed = data.user?.email_confirmed_at;
+
+        if (!userConfirmed) {
+            errorMessage.style.color = 'orange';
+            errorMessage.textContent = '⚠️ Du bist eingeloggt, aber deine E-Mail ist noch nicht bestätigt.';
+        } else {
+            errorMessage.style.color = 'green';
+            errorMessage.textContent = 'Login erfolgreich! Weiterleitung...';
+        }
+
+        // Weiterleitung nach kurzer Zeit
+        setTimeout(() => {
+            window.location.href = 'account.html';
+        }, 2000);
+
+    } catch (error) {
+        console.error('Login-Fehler:', error);
+        await trackEvent('login_error', {
+            email: email,
+            error_message: error.message,
+            error_code: error.status || 'unknown'
+        });
+
+        errorMessage.style.color = 'red';
+        errorMessage.textContent = 'Fehler: ' + error.message;
+    }
+});
+
 
         // Input validation
         document.addEventListener('DOMContentLoaded', function() {
