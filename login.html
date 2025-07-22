@@ -98,44 +98,49 @@ form.addEventListener('submit', async (e) => {
     errorMessage.style.color = 'black';
     errorMessage.textContent = 'Login wird durchgeführt...';
 
-    try {
-        await trackEvent('login_attempt', { email });
+   try {
+    await trackEvent('login_attempt', { email });
 
-        const { data, error } = await client.auth.signInWithPassword({ email, password });
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
 
-        if (error) throw error;
-
-        await trackEvent('login_success', {
-            email: email,
-            user_id: data.user?.id
-        });
-
-        const userConfirmed = data.user?.email_confirmed_at;
-
-        if (!userConfirmed) {
+    if (error) {
+        // Nutzer nicht bestätigt?
+        if (error.message.includes('Email not confirmed')) {
             errorMessage.style.color = 'orange';
-            errorMessage.textContent = '⚠️ Du bist eingeloggt, aber deine E-Mail ist noch nicht bestätigt.';
-        } else {
-            errorMessage.style.color = 'green';
-            errorMessage.textContent = 'Login erfolgreich! Weiterleitung...';
+            errorMessage.textContent = '⚠️ Du musst zuerst deine E-Mail bestätigen. Schau in deinen Posteingang!';
+            await trackEvent('login_email_not_confirmed', { email });
+            return;
         }
 
-        // Weiterleitung nach kurzer Zeit
-        setTimeout(() => {
-            window.location.href = 'account.html';
-        }, 2000);
-
-    } catch (error) {
-        console.error('Login-Fehler:', error);
-        await trackEvent('login_error', {
-            email: email,
-            error_message: error.message,
-            error_code: error.status || 'unknown'
-        });
-
-        errorMessage.style.color = 'red';
-        errorMessage.textContent = 'Fehler: ' + error.message;
+        throw error;
     }
+
+    await trackEvent('login_success', {
+        email: email,
+        user_id: data.user?.id
+    });
+
+    errorMessage.style.color = 'green';
+    errorMessage.textContent = 'Login erfolgreich! Weiterleitung...';
+
+    setTimeout(() => {
+        window.location.href = 'account.html';
+    }, 2000);
+    
+} catch (error) {
+    console.error('Login-Fehler:', error);
+    await trackEvent('login_error', {
+        email: email,
+        error_message: error.message,
+        error_code: error.status || 'unknown'
+    });
+
+    errorMessage.style.color = 'red';
+    errorMessage.textContent = 'Fehler: ' + error.message;
+}
+
+
+ 
 });
 
 
