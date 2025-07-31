@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teil Suchen – TuningHub</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/teilesuchen.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-top">
+        <div class="logo">
+          <a href="index.html">
+            <img
+              src="img/THub-Logo-ohne-Hintergrund-500x200.png"
+              alt="TuningHub Logo"
+              height="50"
+            />
+          </a>
+        </div>
+        <div class="account-erstellen">
+          <a id="account-link" href="account.html">
+            <img
+              src="img/account-icon-schwarz.svg"
+              alt="Account"
+              width="36"
+              height="36"
+            />
+          </a>
+        </div>
+      </div>
+    </header>
+    <main>
+      <h1>DIESE SEITE IST NOCH NICHT FERTIG</h1>
+      <section id="teile-hinzufuegen">
+        <h2>Teil Suchen</h2>
+        <div class="link-bar"><a href="teilehinzufügen.html">zurück</a></div>
+
+        <div id="success-message" class="success-message"></div>
+        <div id="error-message" class="error-message"></div>
+
+        <label for="partTitle">Titel</label>
+        <input
+          type="text"
+          id="partTitle"
+          placeholder="z. B. Auspuff S51"
+          required
+        />
+
+        <label for="partDescription">Beschreibung</label>
+        <textarea
+          id="partDescription"
+          placeholder="Beschreibe das Teil..."
+          rows="4"
+          required
+        ></textarea>
+
+        <label for="partPrice">maximaler Preis (in €)</label>
+        <input
+          type="number"
+          id="partPrice"
+          placeholder="z. B. 49.99"
+          step="0.01"
+          min="0"
+          required
+        />
+
+        <label for="partCondition">mindest Zustand</label>
+        <select id="partCondition" required>
+          <option value="neu">Neu</option>
+          <option value="sehr gut">Sehr gut</option>
+          <option value="gebraucht">Gebraucht</option>
+          <option value="defekt">Defekt / Bastler</option>
+        </select>
+
+        <label for="partImage">Bild auswählen (optional)</label>
+        <input type="file" id="partImage" accept="image/*" />
+
+        <label>Telefonnummer</label>
+        <div class="phone-wrapper">
+          <span id="userPhoneNumber">Lade...</span>
+          <div class="phone-dropdown">
+            <a href="account.html">Nummer ändern</a>
+          </div>
+        </div>
+
+        <button id="addPartBtn" onclick="addPart()">
+          Teilsuche hinzufügen
+        </button>
+      </section>
+    </main>
+    <footer>
+      <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
+      <div class="informations"><a href="impressum.html">Impressum</a></div>
+      <div class="informations"><a href="support.html">Support</a></div>
+      <div class="informations">
+        <a href="socialmedia.html">Social Media</a>
+      </div>
+      <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      // Haupt-Supabase für Teile, Benutzer, etc.
+      const supabase = window.supabase.createClient(
+        "https://yvdptnkmgfxkrszitweo.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo",
+        {
+          auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true,
+          },
+        }
+      );
+
+      // Separate Supabase-Instanz für Tracking
+      const trackingSupabase = window.supabase.createClient(
+        "https://lhxcnrogjjskgaclqxtm.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww",
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        }
+      );
+
+      let userPhone = "";
+      let currentUser = null;
+
+      // Aktuellen Benutzer holen
+      async function getCurrentUser() {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+        if (error || !session || !session.user) {
+          showError("Du musst eingeloggt sein.");
+          return null;
+        }
+        return session.user;
+      }
+
+      // Telefonnummer laden
+      async function loadPhoneNumber() {
+        try {
+          currentUser = await getCurrentUser();
+          if (!currentUser) return;
+
+          // Zuerst versuchen, aus user_metadata zu laden
+          if (currentUser.user_metadata?.phone) {
+            userPhone = currentUser.user_metadata.phone;
+            document.getElementById("userPhoneNumber").textContent = userPhone;
+            return;
+          }
+
+          // Dann aus der profiles Tabelle laden
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("phone_number")
+            .eq("id", currentUser.id)
+            .single();
+
+          if (error || !data || !data.phone_number) {
+            document.getElementById("userPhoneNumber").textContent =
+              "Keine Nummer gefunden";
+            userPhone = "";
+            return;
+          }
+
+          userPhone = data.phone_number;
+          document.getElementById("userPhoneNumber").textContent = userPhone;
+        } catch (error) {
+          console.error("Fehler beim Laden der Telefonnummer:", error);
+          document.getElementById("userPhoneNumber").textContent =
+            "Fehler beim Laden";
+        }
+      }
+
+      // Erfolgsnachricht anzeigen
+      function showSuccess(message) {
+        const successDiv = document.getElementById("success-message");
+        successDiv.textContent = message;
+        successDiv.style.display = "block";
+
+        const errorDiv = document.getElementById("error-message");
+        errorDiv.style.display = "none";
+
+        setTimeout(() => {
+          successDiv.style.display = "none";
+        }, 5000);
+      }
+
+      // Fehlernachricht anzeigen
+      function showError(message) {
+        const errorDiv = document.getElementById("error-message");
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
+
+        const successDiv = document.getElementById("success-message");
+        successDiv.style.display = "none";
+      }
+
+      // Formular zurücksetzen
+      function resetForm() {
+        document.getElementById("partTitle").value = "";
+        document.getElementById("partDescription").value = "";
+        document.getElementById("partPrice").value = "";
+        document.getElementById("partCondition").value = "neu";
+        document.getElementById("partImage").value = "";
+      }
+
+      // Tracking-Event Funktion
+      async function trackEvent(eventType, metadata = {}) {
+        try {
+          const user = await getCurrentUser();
+
+          const { data, error } = await trackingSupabase
+            .from("tracking_events")
+            .insert([
+              {
+                event_type: eventType,
+                user_id: user ? user.id : null,
+                metadata: metadata,
+              },
+            ]);
+
+          if (error) {
+            console.error(
+              "[Tracking] Fehler beim Speichern:",
+              error.message,
+              error
+            );
+          }
+        } catch (err) {
+          console.error("[Tracking] Unerwarteter Fehler:", err);
+        }
+      }
+
+      // Teil hinzufügen - Komplette Funktion
+      async function addPart() {
+        const button = document.getElementById("addPartBtn");
+
+        try {
+          // Button deaktivieren
+          button.disabled = true;
+          button.textContent = "Wird gespeichert...";
+
+          // Eingaben validieren
+          const title = document.getElementById("partTitle").value.trim();
+          const description = document
+            .getElementById("partDescription")
+            .value.trim();
+          const price = parseFloat(
+            document.getElementById("partPrice").value.trim()
+          );
+          const condition = document.getElementById("partCondition").value;
+          const imageFile = document.getElementById("partImage").files[0];
+
+          if (!title || !description || isNaN(price) || !condition) {
+            showError("Bitte fülle alle Pflichtfelder (*) korrekt aus.");
+            return;
+          }
+
+          if (!userPhone) {
+            showError(
+              "Telefonnummer nicht gefunden. Bitte aktualisiere deine Kontaktdaten."
+            );
+            return;
+          }
+
+          // Benutzer erneut prüfen
+          const user = await getCurrentUser();
+          if (!user) return;
+
+          let imageUrl = null;
+
+          // Nur Bild hochladen, wenn eines ausgewählt wurde
+          if (imageFile) {
+            // Eindeutigen Dateinamen generieren
+            const fileName = `${user.id}_${Date.now()}_${imageFile.name}`;
+
+            // Bild hochladen
+            const { data: uploadData, error: uploadError } =
+              await supabase.storage
+                .from("parts-images")
+                .upload(fileName, imageFile, {
+                  cacheControl: "3600",
+                  upsert: false,
+                  contentType: imageFile.type,
+                });
+
+            if (uploadError) {
+              showError(
+                "Fehler beim Hochladen des Bildes: " + uploadError.message
+              );
+              return;
+            }
+
+            // Bild-URL generieren
+            imageUrl = `https://yvdptnkmgfxkrszitweo.supabase.co/storage/v1/object/public/parts-images/${fileName}`;
+          }
+
+          // Daten für die Datenbank vorbereiten
+          const insertData = {
+            user_id: user.id,
+            title: title,
+            description: description,
+            price: price,
+            condition: condition,
+            contact_number: userPhone,
+            created_at: new Date().toISOString(),
+          };
+
+          // Bild-URL nur hinzufügen, wenn vorhanden
+          if (imageUrl) {
+            insertData.image_url = imageUrl;
+          }
+
+          // Teil in Datenbank speichern
+          const { data: result, error: insertError } = await supabase
+            .from("parts")
+            .insert(insertData);
+
+          if (insertError) {
+            console.error("Insert error details:", insertError);
+            showError(
+              "Fehler beim Speichern des Teils: " + insertError.message
+            );
+            return;
+          }
+
+          showSuccess("Teilsuche erfolgreich hinzugefügt!");
+          resetForm();
+
+          // Tracking-Event in separate Supabase-Instanz speichern
+          await trackEvent("teil_hinzugefügt", {
+            title: title,
+            price: price,
+            condition: condition,
+            has_image: !!imageUrl,
+          });
+
+          // Nach erfolgreicher Speicherung zur Startseite weiterleiten
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 2000);
+        } catch (error) {
+          console.error("Unerwarteter Fehler:", error);
+          showError(
+            "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut."
+          );
+        } finally {
+          // Button wieder aktivieren
+          button.disabled = false;
+          button.textContent = "Teilsuche hinzufügen";
+        }
+      }
+
+      // Beim Laden der Seite Telefonnummer laden
+      window.addEventListener("DOMContentLoaded", loadPhoneNumber);
+    </script>
+  </body>
+</html>
