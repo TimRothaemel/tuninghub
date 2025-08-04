@@ -1,3 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teil gesucht – TuningHub</title>
+  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/teilgesuchthinzufügen.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="index.html">
+          <img src="img/THub-Logo-ohne-Hintergrund-500x200.png" alt="TuningHub Logo" height="50" />
+        </a>
+      </div>
+      <div class="account-erstellen">
+        <a id="account-link" href="#">
+          <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
+        </a>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <section id="teil-gesucht">
+      <h2>Teil gesucht</h2>
+      
+      <div id="success-message" class="success-message"></div>
+      <div id="error-message" class="error-message"></div>
+      
+      <form id="wantedPartForm">
+        <div class="form-group">
+          <label for="wantedTitle">Was suchst du?*</label>
+          <input type="text" id="wantedTitle" placeholder="z.B. BMW E46 Sportauspuff" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="wantedDescription">Beschreibung*</label>
+          <textarea id="wantedDescription" placeholder="Genauere Beschreibung des gesuchten Teils..." rows="4" required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="wantedCategory">Kategorie</label>
+          <select id="wantedCategory">
+            <option value="">Bitte auswählen</option>
+            <option value="Motor">Motor</option>
+            <option value="Auspuff">Auspuff</option>
+            <option value="Felgen">Felgen</option>
+            <option value="Karosserie">Karosserie</option>
+            <option value="Innenraum">Innenraum</option>
+            <option value="Elektronik">Elektronik</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="wantedMaxPrice">Maximalpreis (€)</label>
+          <input type="number" id="wantedMaxPrice" placeholder="z.B. 300" min="0" step="1">
+        </div>
+        
+        <div class="form-group">
+          <label for="wantedCondition">Gewünschter Zustand</label>
+          <select id="wantedCondition" multiple>
+            <option value="neu" selected>Neu</option>
+            <option value="sehr gut" selected>Sehr gut</option>
+            <option value="gebraucht">Gebraucht</option>
+            <option value="defekt">Defekt / Bastler</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Kontaktmöglichkeiten</label>
+          <div class="phone-wrapper">
+            <span id="userPhoneNumber">Lade...</span>
+            <div class="phone-dropdown">
+              <a href="account.html">Kontaktdaten ändern</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="wantedLocation">Standort (optional)</label>
+          <input type="text" id="wantedLocation" placeholder="z.B. Berlin oder PLZ">
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="acceptTerms" required>
+            Ich akzeptiere die <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>*
+          </label>
+        </div>
+        
+        <button type="submit" id="addWantedPartBtn">Gesuch veröffentlichen</button>
+      </form>
+    </section>
+  </main>
+  
+  <footer>
+    <div class="informations"><a href="übertuninghub.html">TuningHub</a></div>
+    <div class="informations"><a href="impressum.html">Impressum</a></div>
+    <div class="informations"><a href="support.html">Support</a></div>
+    <div class="informations"><a href="socialmedia.html">Social Media</a></div>
+    <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
+  </footer>
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -14,6 +120,198 @@
   <div class="loading-overlay" id="loadingOverlay">
     <div>Wird verarbeitet...</div>
   </div>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Supabase Client initialisieren
+    const supabase = window.supabase.createClient(
+      'https://yvdptnkmgfxkrszitweo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2ZHB0bmttZ2Z4a3Jzeml0d2VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MDAwMzQsImV4cCI6MjA2NjI3NjAzNH0.Kd6D6IQ_stUMrcbm2TN-7ACjFJvXNmkeNehQHavTmJo'
+    );
+
+    // Tracking Supabase
+    const trackingSupabase = window.supabase.createClient(
+      'https://lhxcnrogjjskgaclqxtm.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww'
+    );
+
+    let userPhone = '';
+    let currentUser = null;
+
+    // Aktuellen Benutzer holen
+    async function getCurrentUser() {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session || !session.user) {
+        showError("Du musst eingeloggt sein, um ein Gesuch zu erstellen.");
+        return null;
+      }
+      return session.user;
+    }
+
+    // Telefonnummer laden
+    async function loadPhoneNumber() {
+      try {
+        currentUser = await getCurrentUser();
+        if (!currentUser) return;
+
+        if (currentUser.user_metadata?.phone) {
+          userPhone = currentUser.user_metadata.phone;
+          document.getElementById('userPhoneNumber').textContent = userPhone;
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('phone_number')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (error || !data || !data.phone_number) {
+          document.getElementById('userPhoneNumber').textContent = 'Keine Nummer hinterlegt';
+          userPhone = '';
+          return;
+        }
+
+        userPhone = data.phone_number;
+        document.getElementById('userPhoneNumber').textContent = userPhone;
+      } catch (error) {
+        console.error('Fehler beim Laden der Telefonnummer:', error);
+        document.getElementById('userPhoneNumber').textContent = 'Fehler beim Laden';
+      }
+    }
+
+    // Erfolgsmeldung anzeigen
+    function showSuccess(message) {
+      const successDiv = document.getElementById('success-message');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.style.display = 'none';
+      
+      setTimeout(() => {
+        successDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    // Fehlermeldung anzeigen
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      
+      const successDiv = document.getElementById('success-message');
+      successDiv.style.display = 'none';
+    }
+
+    // Formular zurücksetzen
+    function resetForm() {
+      document.getElementById('wantedPartForm').reset();
+    }
+
+    // Tracking-Event
+    async function trackEvent(eventType, metadata = {}) {
+      try {
+        const user = await getCurrentUser();
+        
+        const { data, error } = await trackingSupabase
+          .from('tracking_events')
+          .insert([{
+            event_type: eventType,
+            user_id: user ? user.id : null,
+            metadata: metadata
+          }]);
+        
+        if (error) console.error('Tracking error:', error);
+      } catch (err) {
+        console.error('Tracking error:', err);
+      }
+    }
+
+    // Gesuch veröffentlichen
+    async function addWantedPart(event) {
+      event.preventDefault();
+      
+      const button = document.getElementById('addWantedPartBtn');
+      button.disabled = true;
+      button.textContent = 'Wird veröffentlicht...';
+      
+      try {
+        const user = await getCurrentUser();
+        if (!user) return;
+        
+        if (!userPhone) {
+          showError("Bitte hinterlege eine Telefonnummer in deinem Profil.");
+          return;
+        }
+        
+        const title = document.getElementById('wantedTitle').value.trim();
+        const description = document.getElementById('wantedDescription').value.trim();
+        const category = document.getElementById('wantedCategory').value;
+        const maxPrice = document.getElementById('wantedMaxPrice').value;
+        const condition = Array.from(document.getElementById('wantedCondition').selectedOptions)
+                              .map(option => option.value);
+        const location = document.getElementById('wantedLocation').value.trim();
+        
+        if (!title || !description) {
+          showError("Titel und Beschreibung sind Pflichtfelder.");
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from('wanted_parts')
+          .insert([{
+            user_id: user.id,
+            title: title,
+            description: description,
+            category: category,
+            max_price: maxPrice ? parseFloat(maxPrice) : null,
+            condition: condition,
+            contact_number: userPhone,
+            location: location,
+            created_at: new Date().toISOString()
+          }]);
+        
+        if (error) {
+          console.error('Error adding wanted part:', error);
+          showError("Fehler beim Veröffentlichen des Gesuchs: " + error.message);
+          return;
+        }
+        
+        showSuccess("Dein Gesuch wurde erfolgreich veröffentlicht!");
+        resetForm();
+        
+        // Tracking
+        await trackEvent('teil_gesucht_erstellt', {
+          title: title,
+          category: category
+        });
+        
+        // Weiterleitung nach 2 Sekunden
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        showError("Ein unerwarteter Fehler ist aufgetreten.");
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Gesuch veröffentlichen';
+      }
+    }
+
+    // Event Listener
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPhoneNumber();
+      document.getElementById('wantedPartForm').addEventListener('submit', addWantedPart);
+    });
+
+  </script>
+</body>
+</html>
 
   <header class="header">
     <div class="header-top">
