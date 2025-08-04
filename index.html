@@ -4,10 +4,189 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TuningHub</title>
-    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/search.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-   
+    <style>
+        /* Verbesserte CSS-Stile für die Such-Badges */
+        .search-badge {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            border: 2px solid white;
+        }
+
+        .search-badge.bottom-badge {
+            position: static;
+            margin-left: 8px;
+            display: inline-block;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .card {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .card.search-card {
+            border: 2px solid #ff6b35;
+            background: linear-gradient(135deg, #fff 0%, #fff8f5 100%);
+        }
+
+        .card.search-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            z-index: 5;
+        }
+
+        /* Contact dialog styles */
+        .contact-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .contact-dialog-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .contact-phone {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0 25px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .contact-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .contact-option {
+            flex: 1;
+            min-width: 100px;
+            padding: 15px 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .contact-option.call {
+            background: #28a745;
+            color: white;
+        }
+
+        .contact-option.call:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .contact-option.whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .contact-option.whatsapp:hover {
+            background: #1ebe5c;
+            transform: translateY(-2px);
+        }
+
+        .contact-option.sms {
+            background: #007bff;
+            color: white;
+        }
+
+        .contact-option.sms:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .contact-option .icon {
+            font-size: 24px;
+        }
+
+        .contact-cancel {
+            padding: 12px 30px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .contact-cancel:hover {
+            border-color: #999;
+            color: #333;
+        }
+
+        /* Loading, error, and empty states */
+        .loading, .error, .empty {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,16 +213,15 @@
 
     <!-- Hauptinhalt -->
     <main>
-  <div class="link-bar">
-    <a class="left" href="teilehinzufügen.html">Hinzufügen</a>
-  
-  </div>
+        <div class="link-bar">
+            <a class="left" href="teilehinzufügen.html">Hinzufügen</a>
+        </div>
 
-  <!-- Container für dynamische Karten -->
-  <div class="grid-container" id="angebot-container">
-    <!-- Dynamische Karten werden hier eingefügt -->
-  </div>
-</main>
+        <!-- Container für dynamische Karten -->
+        <div class="grid-container" id="angebot-container">
+            <!-- Dynamische Karten werden hier eingefügt -->
+        </div>
+    </main>
 
     <!-- Detailansicht Modal -->
     <div class="detail-modal" id="detail-modal">
@@ -78,6 +256,10 @@
                             <span class="meta-label">Telefon</span>
                             <span class="meta-value" id="detail-phone">Wird beim Kontakt angezeigt</span>
                         </div>
+                        <div class="meta-item" id="detail-type-container" style="display: none;">
+                            <span class="meta-label">Typ</span>
+                            <span class="meta-value" id="detail-type"></span>
+                        </div>
                     </div>
                     <div class="detail-actions">
                         <button class="action-button primary-button" id="contact-seller-btn">Verkäufer kontaktieren</button>
@@ -97,8 +279,6 @@
         <div class="informations"><a href="datenschutz.html">Datenschutz</a></div>
     </footer>
 
-    <!-- Überarbeitetes JavaScript -->
-    <script src="js/search.js"></script>
     <script>
         // Debug-Funktionen
         function log(message, data = null) {
@@ -148,186 +328,85 @@
             const verkäufer = teil.seller_name || teil.user_name || 'Privater Verkäufer';
             const datum = teil.created_at || teil.date || new Date().toISOString();
             const id = teil.id;
+            const typ = teil.type || teil.typ || '';
             
-            return { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum, id };
+            return { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum, id, typ };
         }
 
-
-    // Verkäufer kontaktieren mit modalen Buttons im bestehenden Design
-    function contactSeller(telefon) {
-        if (!telefon) {
-            alert('Keine Telefonnummer verfügbar');
-            return;
-        }
-        
-        // Telefonnummer bereinigen (nur Zahlen und +)
-        const cleanedPhone = telefon.replace(/[^\d+]/g, '');
-        
-        // Dialog erstellen
-        const dialog = document.createElement('div');
-        dialog.className = 'contact-dialog-overlay';
-        dialog.innerHTML = `
-            <div class="contact-dialog-content">
-                <h3>Kontaktoptionen</h3>
-                <p class="contact-phone">${telefon}</p>
-                <div class="contact-options">
-                    <button class="contact-option call">
-                        <span class="icon">📞</span>
-                        <span>Anrufen</span>
-                    </button>
-                    <button class="contact-option whatsapp">
-                        <span class="icon">💬</span>
-                        <span>WhatsApp</span>
-                    </button>
-                    <button class="contact-option sms">
-                        <span class="icon">📱</span>
-                        <span>SMS</span>
-                    </button>
+        // Verkäufer kontaktieren mit modalen Buttons im bestehenden Design
+        function contactSeller(telefon) {
+            if (!telefon) {
+                alert('Keine Telefonnummer verfügbar');
+                return;
+            }
+            
+            // Telefonnummer bereinigen (nur Zahlen und +)
+            const cleanedPhone = telefon.replace(/[^\d+]/g, '');
+            
+            // Dialog erstellen
+            const dialog = document.createElement('div');
+            dialog.className = 'contact-dialog-overlay';
+            dialog.innerHTML = `
+                <div class="contact-dialog-content">
+                    <h3>Kontaktoptionen</h3>
+                    <p class="contact-phone">${telefon}</p>
+                    <div class="contact-options">
+                        <button class="contact-option call">
+                            <span class="icon">📞</span>
+                            <span>Anrufen</span>
+                        </button>
+                        <button class="contact-option whatsapp">
+                            <span class="icon">💬</span>
+                            <span>WhatsApp</span>
+                        </button>
+                        <button class="contact-option sms">
+                            <span class="icon">📱</span>
+                            <span>SMS</span>
+                        </button>
+                    </div>
+                    <button class="contact-cancel">Abbrechen</button>
                 </div>
-                <button class="contact-cancel">Abbrechen</button>
-            </div>
-        `;
-        
-        // Styling hinzufügen
-        const style = document.createElement('style');
-        style.textContent = `
-            .contact-dialog-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 2000;
-                animation: fadeIn 0.3s ease-out;
-            }
+            `;
             
-            .contact-dialog-content {
-                background: white;
-                padding: 24px;
-                border-radius: 16px;
-                width: 90%;
-                max-width: 400px;
-                box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-                text-align: center;
-            }
+            document.body.appendChild(dialog);
             
-            .contact-dialog-content h3 {
-                font-size: 1.2rem;
-                color: #333;
-                margin-bottom: 8px;
-            }
-            
-            .contact-phone {
-                color: #666;
-                font-size: 1rem;
-                margin-bottom: 20px;
-                padding: 8px;
-                background: #f8f9fa;
-                border-radius: 8px;
-            }
-            
-            .contact-options {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-                margin-bottom: 20px;
-            }
-            
-            .contact-option {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 12px;
-                border: none;
-                border-radius: 8px;
-                background: #f8f9fa;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            
-            .contact-option:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            }
-            
-            .contact-option .icon {
-                font-size: 24px;
-                margin-bottom: 6px;
-            }
-            
-            .contact-option span {
-                font-size: 0.9rem;
-            }
-            
-            .call { color: #28a745; }
-            .whatsapp { color: #25D366; }
-            .sms { color: #17a2b8; }
-            
-            .contact-cancel {
-                width: 100%;
-                padding: 12px;
-                border: none;
-                border-radius: 8px;
-                background: #f0f0f0;
-                color: #666;
-                font-size: 1rem;
-                cursor: pointer;
-                transition: background 0.2s;
-            }
-            
-            .contact-cancel:hover {
-                background: #e0e0e0;
-            }
-        `;
-        
-        document.head.appendChild(style);
-        document.body.appendChild(dialog);
-        
-        // Button Events
-        dialog.querySelector('.call').addEventListener('click', () => {
-            window.location.href = `tel:${cleanedPhone}`;
-            removeDialog();
-        });
-        
-        dialog.querySelector('.whatsapp').addEventListener('click', () => {
-            window.open(`https://wa.me/${cleanedPhone.replace(/[^\d]/g, '')}`, '_blank');
-            removeDialog();
-        });
-        
-        dialog.querySelector('.sms').addEventListener('click', () => {
-            window.location.href = `sms:${cleanedPhone}`;
-            removeDialog();
-        });
-        
-        dialog.querySelector('.contact-cancel').addEventListener('click', removeDialog);
-        
-        // Klicken außerhalb des Dialogs schließt ihn
-        dialog.addEventListener('click', (e) => {
-            if (e.target === dialog) {
+            // Button Events
+            dialog.querySelector('.call').addEventListener('click', () => {
+                window.location.href = `tel:${cleanedPhone}`;
                 removeDialog();
-            }
-        });
-        
-        // ESC-Taste schließt den Dialog
-        document.addEventListener('keydown', function escHandler(e) {
-            if (e.key === 'Escape') {
+            });
+            
+            dialog.querySelector('.whatsapp').addEventListener('click', () => {
+                window.open(`https://wa.me/${cleanedPhone.replace(/[^\d]/g, '')}`, '_blank');
                 removeDialog();
-                document.removeEventListener('keydown', escHandler);
+            });
+            
+            dialog.querySelector('.sms').addEventListener('click', () => {
+                window.location.href = `sms:${cleanedPhone}`;
+                removeDialog();
+            });
+            
+            dialog.querySelector('.contact-cancel').addEventListener('click', removeDialog);
+            
+            // Klicken außerhalb des Dialogs schließt ihn
+            dialog.addEventListener('click', (e) => {
+                if (e.target === dialog) {
+                    removeDialog();
+                }
+            });
+            
+            // ESC-Taste schließt den Dialog
+            document.addEventListener('keydown', function escHandler(e) {
+                if (e.key === 'Escape') {
+                    removeDialog();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            });
+            
+            function removeDialog() {
+                dialog.remove();
             }
-        });
-        
-        function removeDialog() {
-            dialog.remove();
-            style.remove();
         }
-    }
-
-
 
         // Teil teilen Funktion
         function sharePart(id) {
@@ -399,7 +478,7 @@
         // Detailansicht öffnen
         function openDetailView(teil) {
             const modal = document.getElementById('detail-modal');
-            const { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, datum, id } = extractData(teil);
+            const { name, preis, beschreibung, bild, kategorie, zustand, telefon, verkäufer, typ, id } = extractData(teil);
             
             // Aktuelles Teil speichern
             currentPart = teil;
@@ -433,6 +512,16 @@
             document.getElementById('detail-condition').textContent = zustand;
             document.getElementById('detail-seller').textContent = verkäufer;
             document.getElementById('detail-phone').textContent = telefon || 'Nicht verfügbar';
+            
+            // Typ anzeigen wenn vorhanden
+            const typeContainer = document.getElementById('detail-type-container');
+            const typeElement = document.getElementById('detail-type');
+            if (typ) {
+                typeContainer.style.display = 'flex';
+                typeElement.textContent = typ === 'teilesuche' ? 'Suche' : typ;
+            } else {
+                typeContainer.style.display = 'none';
+            }
             
             // Kontakt-Button Event
             const contactBtn = document.getElementById('contact-seller-btn');
@@ -471,12 +560,14 @@
             log('Detailansicht geschlossen');
         }
 
-        // Karte erstellen
+        // Karte erstellen - VERBESSERT für prominentere Such-Badge
         function createCard(teil) {
-            const { name, preis, beschreibung, bild } = extractData(teil);
+            const { name, preis, beschreibung, bild, typ } = extractData(teil);
             
             const card = document.createElement('div');
-            card.className = 'card';
+            // Prüfen ob es sich um eine Suche handelt
+            const isSearch = typ === 'teilesuche';
+            card.className = isSearch ? 'card search-card' : 'card';
             
             // Bild-URL mit Fallback
             const imageUrl = bild || 'https://via.placeholder.com/300x200/e9ecef/666?text=Kein+Bild';
@@ -491,13 +582,16 @@
             }
             
             card.innerHTML = `
+                ${isSearch ? '<span class="search-badge">🔍 SUCHE</span>' : ''}
                 <img src="${imageUrl}" 
                      alt="${name}" 
                      onerror="this.src='${fallbackUrl}'" 
                      loading="lazy" />
                 <h2>${name}</h2>
                 ${beschreibung ? `<p>${beschreibung}</p>` : ''}
-                <p><strong>${preisText}</strong></p>
+                <div class="card-footer">
+                    <p><strong>${preisText}</strong></p>
+                </div>
             `;
             
             // Click-Event für Detailansicht
@@ -600,57 +694,6 @@
             });
         }
 
-        // Test-Daten anzeigen (falls keine echten Daten da sind)
-        function showTestData() {
-            log('Zeige Test-Daten...');
-            
-            const container = document.getElementById('angebot-container');
-            const testData = [
-                {
-                    id: 'test-1',
-                    name: 'BMW M3 Spoiler',
-                    preis: 299,
-                    beschreibung: 'Originaler BMW M3 Spoiler in sehr gutem Zustand. Perfekt für alle E46 Modelle.',
-                    bild_url: 'https://via.placeholder.com/300x200/007bff/white?text=BMW+M3+Spoiler',
-                    kategorie: 'Karosserie',
-                    zustand: 'Sehr gut',
-                    contact_number: '+49 123 456789',
-                    seller_name: 'Max Mustermann',
-                    created_at: '2024-01-15T10:30:00Z'
-                },
-                {
-                    id: 'test-2',
-                    name: 'Audi RS4 Felgen',
-                    preis: 1200,
-                    beschreibung: '19 Zoll Originalfelgen vom Audi RS4, wie neu, ohne Kratzer oder Beschädigungen.',
-                    bild_url: 'https://via.placeholder.com/300x200/28a745/white?text=Audi+RS4+Felgen',
-                    kategorie: 'Felgen',
-                    zustand: 'Neuwertig',
-                    contact_number: '+49 987 654321',
-                    seller_name: 'Anna Schmidt',
-                    created_at: '2024-01-10T14:20:00Z'
-                },
-                {
-                    id: 'test-3',
-                    name: 'Turbolader Kit',
-                    preis: 2500,
-                    beschreibung: 'Komplettes Turbolader-Kit für VW Golf GTI, inklusive aller Montageteile.',
-                    bild_url: 'https://via.placeholder.com/300x200/dc3545/white?text=Turbolader+Kit',
-                    kategorie: 'Motor',
-                    zustand: 'Gebraucht',
-                    contact_number: '+49 555 123456',
-                    seller_name: 'Thomas Müller',
-                    created_at: '2024-01-08T09:15:00Z'
-                }
-            ];
-            
-            container.innerHTML = '';
-            testData.forEach(teil => {
-                const card = createCard(teil);
-                container.appendChild(card);
-            });
-        }
-
         // Event-Listener für Detailansicht
         function setupDetailView() {
             // Schließen-Button
@@ -736,135 +779,6 @@
         // Fehler-Handler für unbehandelte Fehler
         window.addEventListener('error', function(e) {
             log('Globaler Fehler:', e.error);
-        });
-      
-    </script>
-<script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-        // Korrekte Supabase-Konfiguration
-        const supabaseUrl = 'https://lhxcnrogjjskgaclqxtm.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeGNucm9nampza2dhY2xxeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MjU0MzUsImV4cCI6MjA2ODEwMTQzNX0.vOr_Esi9IIesFixkkvYQjYEqghrKCMeqbrPKW27zqww';
-
-        let supabase;
-        let statusDiv = null;
-
-        function updateStatus(message, isError = false) {
-            // Versuche das Status-Element zu finden, falls noch nicht verfügbar
-            if (!statusDiv) {
-                statusDiv = document.getElementById('status');
-            }
-            
-            // Nur DOM-Update wenn Element verfügbar ist
-            if (statusDiv) {
-                statusDiv.textContent = message;
-                statusDiv.style.color = isError ? 'red' : 'green';
-            }
-            
-            // Immer in Konsole loggen
-            console.log(`[TuningHub] ${message}`);
-        }
-
-        async function initializeSupabase() {
-            try {
-                supabase = createClient(supabaseUrl, supabaseAnonKey);
-                updateStatus('Supabase Client erfolgreich initialisiert');
-                return true;
-            } catch (error) {
-                updateStatus(`Fehler bei Supabase-Initialisierung: ${error.message}`, true);
-                return false;
-            }
-        }
-
-        async function trackPageview() {
-            if (!supabase) {
-                updateStatus('Supabase Client nicht verfügbar', true);
-                return;
-            }
-
-            try {
-                // Sichere User-ID-Abfrage mit Fallback
-                let userId = null;
-                try {
-                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                    if (session?.user?.id) {
-                        userId = session.user.id;
-                    }
-                } catch (authError) {
-                    console.warn('[TuningHub] Auth nicht verfügbar:', authError.message);
-                }
-
-                // Tracking-Daten vorbereiten
-                const trackingData = {
-                    event_type: 'pageview',
-                    user_id: userId,
-                    metadata: {
-                        path: window.location.pathname || '/',
-                        referrer: document.referrer || '',
-                        userAgent: navigator.userAgent || '',
-                        screen: `${window.screen.width}x${window.screen.height}`,
-                        timestamp: new Date().toISOString()
-                    }
-                };
-
-                // Pageview in Supabase einfügen
-                const { data, error } = await supabase
-                    .from('tracking_events')
-                    .insert([trackingData]);
-
-                if (error) {
-                    throw error;
-                }
-
-                updateStatus(`Pageview erfolgreich getrackt${userId ? ' (authentifiziert)' : ' (anonym)'}`);
-                
-            } catch (error) {
-                updateStatus(`Tracking-Fehler: ${error.message}`, true);
-                
-                // Fallback: Lokales Tracking oder alternative Lösung
-                console.warn('[TuningHub] Verwende Fallback-Tracking');
-                localStorage.setItem('tuning_hub_pageview', JSON.stringify({
-                    path: window.location.pathname,
-                    timestamp: new Date().toISOString(),
-                    error: error.message
-                }));
-            }
-        }
-
-        // Sicherstellen, dass DOM vollständig geladen ist
-        function waitForDOM() {
-            return new Promise((resolve) => {
-                if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                    // DOM ist bereit
-                    setTimeout(resolve, 10); // Kleine Verzögerung für Sicherheit
-                } else {
-                    // Warten auf DOMContentLoaded
-                    document.addEventListener('DOMContentLoaded', () => {
-                        setTimeout(resolve, 10);
-                    });
-                }
-            });
-        }
-
-        // Hauptausführung mit verbesserter Fehlerbehandlung
-        async function main() {
-            // Warten bis DOM bereit ist
-            await waitForDOM();
-            
-            updateStatus('Initialisiere Tracking...');
-            
-            const initialized = await initializeSupabase();
-            
-            if (initialized) {
-                await trackPageview();
-            } else {
-                updateStatus('Tracking konnte nicht initialisiert werden', true);
-            }
-        }
-
-        // Sofort starten
-        main().catch(error => {
-            console.error('[TuningHub] Kritischer Fehler:', error);
         });
     </script>
 </body>

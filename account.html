@@ -10,7 +10,7 @@
   <link rel="icon" href="data:,"> <!-- Verhindert 404-Fehler -->
   
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/account.css" />
   
   <style>
@@ -185,7 +185,9 @@
     // Falls Nummer mit 0049 beginnt, ersetze durch +49
     else if (phone.startsWith('0049')) {
       phone = '+' + phone.substring(2);
-    }
+    }else if (!phone.startsWith('1')) {
+    phone = '+49' + phone;
+ }
     
     return phone;
   }

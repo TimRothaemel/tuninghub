@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TuningHub Login</title>
-    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/login.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -107,8 +107,8 @@ form.addEventListener('submit', async (e) => {
         // Nutzer nicht bestätigt?
         if (error.message.includes('Email not confirmed')) {
             errorMessage.style.color = 'orange';
-            errorMessage.textContent = '⚠️ Du musst zuerst deine E-Mail bestätigen. Schau in deinen Posteingang!';
-            await trackEvent('login_email_not_confirmed', { email });
+            errorMessage.textContent = 'Du musst zuerst deine E-Mail bestätigen. Schau in deinen Posteingang!';
+            await trackEvent('login_sucess', { email });
             return;
         }
 

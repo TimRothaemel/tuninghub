@@ -173,3 +173,59 @@ main  a {
 a:hover {
   text-decoration: underline;
 }
+/* iOS-spezifische Verbesserungen */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 18px;
+    }
+    
+    .loading-overlay.show {
+      display: flex;
+    }
+    
+    .error-message, .success-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .error-message {
+      background-color: #ffebee;
+      border: 1px solid #f44336;
+      color: #d32f2f;
+    }
+    
+    .success-message {
+      background-color: #e8f5e8;
+      border: 1px solid #4caf50;
+      color: #2e7d32;
+    }
+    
+    #addPartBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    /* Bessere Touch-Targets für iOS */
+    button, input, select, textarea {
+      min-height: 44px;
+      -webkit-appearance: none;
+      border-radius: 8px;
+    }
+    
+    input[type="file"] {
+      padding: 12px;
+      border: 2px dashed #ccc;
+      background: #f9f9f9;
+    }

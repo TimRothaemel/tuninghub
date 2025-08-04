@@ -7,66 +7,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Teil hinzufügen – TuningHub</title>
-  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/teilehinzufügen.css" />
-  <style>
-    /* iOS-spezifische Verbesserungen */
-    .loading-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 18px;
-    }
-    
-    .loading-overlay.show {
-      display: flex;
-    }
-    
-    .error-message, .success-message {
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      display: none;
-    }
-    
-    .error-message {
-      background-color: #ffebee;
-      border: 1px solid #f44336;
-      color: #d32f2f;
-    }
-    
-    .success-message {
-      background-color: #e8f5e8;
-      border: 1px solid #4caf50;
-      color: #2e7d32;
-    }
-    
-    #addPartBtn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    
-    /* Bessere Touch-Targets für iOS */
-    button, input, select, textarea {
-      min-height: 44px;
-      -webkit-appearance: none;
-      border-radius: 8px;
-    }
-    
-    input[type="file"] {
-      padding: 12px;
-      border: 2px dashed #ccc;
-      background: #f9f9f9;
-    }
-  </style>
 </head>
 <body>
   <div class="loading-overlay" id="loadingOverlay">
@@ -81,7 +23,7 @@
         </a>
       </div>
       <div class="account-erstellen">
-        <a id="account-link" href="#">
+        <a id="account-link" href="account.html" title="Mein Account">
           <img src="img/account-icon-schwarz.svg" alt="Account" width="36" height="36" />
         </a>
       </div>
@@ -93,22 +35,22 @@
       <h2>Teil hinzufügen</h2>
 
       <div class="link-bar">
-        <a href="teilesuchen.html">Teil Suchen</a>
+        <a href="teilesuchen.html">Teilsuche hinzufügen</a>
       </div>
      
       <div id="success-message" class="success-message"></div>
       <div id="error-message" class="error-message"></div>
       
-      <label for="partTitle">Titel *</label>
+      <label for="partTitle">Titel</label>
       <input type="text" id="partTitle" placeholder="z. B. Auspuff S51" required maxlength="100" />
       
-      <label for="partDescription">Beschreibung *</label>
+      <label for="partDescription">Beschreibung</label>
       <textarea id="partDescription" placeholder="Beschreibe das Teil..." rows="4" required maxlength="1000"></textarea>
       
-      <label for="partPrice">Preis (in €) *</label>
+      <label for="partPrice">Preis (in €)</label>
       <input type="number" id="partPrice" placeholder="z. B. 49.99" step="0.01" min="0" max="99999" required />
       
-      <label for="partCondition">Zustand *</label>
+      <label for="partCondition">Zustand</label>
       <select id="partCondition" required>
         <option value="">Bitte wählen...</option>
         <option value="neu">Neu</option>
@@ -117,11 +59,13 @@
         <option value="defekt">Defekt / Bastler</option>
       </select>
       
-      <label for="partImage">Bild auswählen * (max. 10MB)</label>
+      <label for="partImage">Bild auswählen</label>
       <input type="file" 
              id="partImage" 
              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
              required />
+      <!-- Verstecktes Feld für den Teil-Typ -->
+      <input type="hidden" id="partType" value="teil" />
       
       <label>Telefonnummer</label>
       <div class="phone-wrapper">
@@ -323,6 +267,47 @@
       });
     }
 
+    // Bildkomprimierungsfunktion
+    async function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.85) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Bildmaße anpassen, falls zu groß
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.floor(width * ratio);
+              height = Math.floor(height * ratio);
+            }
+
+            // Canvas mit neuen Maßen erstellen
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Hochwertige Bildskalierung
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // In Blob umwandeln
+            canvas.toBlob((blob) => {
+              resolve(new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              }));
+            }, 'image/jpeg', quality);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     // Eingaben validieren
     function validateInputs() {
       const title = document.getElementById("partTitle")?.value?.trim() || '';
@@ -331,6 +316,7 @@
       const condition = document.getElementById("partCondition")?.value || '';
       const fileInput = document.getElementById("partImage");
       const imageFile = fileInput?.files?.[0];
+      const type = document.getElementById("partType")?.value || 'teil';
 
       // Titel prüfen
       if (!title) {
@@ -389,7 +375,8 @@
         description,
         price,
         condition,
-        imageFile
+        imageFile,
+        type
       };
     }
 
@@ -453,21 +440,29 @@
         const validatedData = validateInputs();
         console.log('Validierung erfolgreich');
 
+        // Bild komprimieren
+        console.log('Starte Bildkomprimierung...');
+        const compressedImage = await compressImage(validatedData.imageFile);
+        console.log('Bild erfolgreich komprimiert', {
+          originalSize: validatedData.imageFile.size,
+          compressedSize: compressedImage.size,
+          reduction: `${Math.round((1 - compressedImage.size / validatedData.imageFile.size) * 100)}%`
+        });
+
         // Eindeutigen Dateinamen generieren
         const timestamp = Date.now();
         const randomString = Math.random().toString(36).substring(2, 8);
-        const fileExtension = validatedData.imageFile.name.split('.').pop().toLowerCase();
-        const fileName = `${user.id}_${timestamp}_${randomString}.${fileExtension}`;
+        const fileName = `${user.id}_${timestamp}_${randomString}.jpg`; // Immer JPG nach Komprimierung
 
         console.log('Starte Bild-Upload:', fileName);
 
         // Bild hochladen
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('parts-images')
-          .upload(fileName, validatedData.imageFile, {
+          .upload(fileName, compressedImage, {
             cacheControl: '3600',
             upsert: false,
-            contentType: validatedData.imageFile.type,
+            contentType: 'image/jpeg',
           });
 
         if (uploadError) {
@@ -489,6 +484,7 @@
           condition: validatedData.condition,
           contact_number: userPhone,
           image_url: imageUrl,
+          type: validatedData.type,
           created_at: new Date().toISOString()
         };
 
@@ -522,6 +518,9 @@
           title: validatedData.title,
           price: validatedData.price,
           condition: validatedData.condition,
+          type: validatedData.type,
+          original_size: validatedData.imageFile.size,
+          compressed_size: compressedImage.size,
           success: true
         });
 
@@ -631,7 +630,6 @@
       console.error('Unbehandelte Promise-Ablehnung:', e.reason);
       showError('Ein Netzwerkfehler ist aufgetreten. Bitte versuche es erneut.');
     });
-
   </script>
 </body>
 </html>
